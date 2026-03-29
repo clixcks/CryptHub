@@ -231,6 +231,8 @@ function CryptHub:Window(Settings)
 	mainLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	mainLayout.Parent = base
 
+	base.Parent = gui
+
 	local sidebar = Instance.new("Frame")
 	sidebar.Name = "Sidebar"
 	sidebar.BackgroundColor3 = Color3.fromRGB(22, 22, 22)

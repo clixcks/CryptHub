@@ -1,3 +1,5 @@
+-- 3
+
 local CryptHub = {
 	Options = {},
 	Folder = "CryptHub",
@@ -196,20 +198,19 @@ function CryptHub:Window(Settings)
 	notificationsUIListLayout.Parent = notifications
 
 	local notificationsUIPadding = Instance.new("UIPadding")
-	notificationsUIPadding.PaddingBottom = UDim.new(0, 10)
-	notificationsUIPadding.PaddingLeft = UDim.new(0, 10)
-	notificationsUIPadding.PaddingRight = UDim.new(0, 10)
-	notificationsUIPadding.PaddingTop = UDim.new(0, 10)
+	notificationsUIPadding.PaddingBottom = UDim.new(0, 100)
+	notificationsUIPadding.PaddingLeft = UDim.new(0, 20)
+	notificationsUIPadding.PaddingRight = UDim.new(0, 20)
+	notificationsUIPadding.PaddingTop = UDim.new(0, 20)
 	notificationsUIPadding.Parent = notifications
 
 	local base = Instance.new("Frame")
 	base.Name = "Base"
 	base.AnchorPoint = Vector2.new(0.5, 0.5)
-	base.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-	base.BackgroundTransparency = acrylicBlur and 0.05 or 0
+	base.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
 	base.BorderSizePixel = 0
-	base.Position = UDim2.fromScale(0.5, 0.5)
-	base.Size = Settings.Size or UDim2.fromOffset(1000, 600)
+	base.Position = UDim2.new(0.5, 0, 0.42, 0)
+	base.Size = Settings.Size or UDim2.fromOffset(900, 520)
 	base.Visible = true
 	windowState = true
 
@@ -217,13 +218,13 @@ function CryptHub:Window(Settings)
 	baseUIScale.Parent = base
 
 	local baseUICorner = Instance.new("UICorner")
-	baseUICorner.CornerRadius = UDim.new(0, 20)
+	baseUICorner.CornerRadius = UDim.new(0, 16)
 	baseUICorner.Parent = base
 
 	local baseUIStroke = Instance.new("UIStroke")
 	baseUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	baseUIStroke.Color = Color3.fromRGB(255, 255, 255)
-	baseUIStroke.Transparency = 0.9
+	baseUIStroke.Transparency = 0.94
 	baseUIStroke.Parent = base
 
 	local mainLayout = Instance.new("UIListLayout")
@@ -235,13 +236,19 @@ function CryptHub:Window(Settings)
 
 	local sidebar = Instance.new("Frame")
 	sidebar.Name = "Sidebar"
-	sidebar.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+	sidebar.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
 	sidebar.BorderSizePixel = 0
-	sidebar.Size = UDim2.new(0, 240, 1, 0)
+	sidebar.Size = UDim2.new(0, 224, 1, 0)
 
 	local sidebarUICorner = Instance.new("UICorner")
-	sidebarUICorner.CornerRadius = UDim.new(0, 20)
+	sidebarUICorner.CornerRadius = UDim.new(0, 16)
 	sidebarUICorner.Parent = sidebar
+
+	local sidebarUIStroke = Instance.new("UIStroke")
+	sidebarUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	sidebarUIStroke.Color = Color3.fromRGB(255, 255, 255)
+	sidebarUIStroke.Transparency = 0.93
+	sidebarUIStroke.Parent = sidebar
 
 	local divider = Instance.new("Frame")
 	divider.Name = "Divider"
@@ -601,11 +608,21 @@ function CryptHub:Window(Settings)
 
 	local content = Instance.new("Frame")
 	content.Name = "Content"
-	content.AnchorPoint = Vector2.new(1, 0)
-	content.BackgroundTransparency = 1
+	content.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	content.BackgroundTransparency = 0.1
 	content.BorderSizePixel = 0
-	content.Position = UDim2.fromScale(1, 0)
-	content.Size = UDim2.new(1, -240, 1, 0)
+	content.Position = UDim2.new(0, 236, 0, 0)
+	content.Size = UDim2.new(1, -248, 1, 0)
+
+	local contentUICorner = Instance.new("UICorner")
+	contentUICorner.CornerRadius = UDim.new(0, 16)
+	contentUICorner.Parent = content
+
+	local contentUIStroke = Instance.new("UIStroke")
+	contentUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	contentUIStroke.Color = Color3.fromRGB(255, 255, 255)
+	contentUIStroke.Transparency = 0.94
+	contentUIStroke.Parent = content
 
 	local resizingContent = false
 	local defaultSidebarWidth = 240
@@ -796,20 +813,19 @@ function CryptHub:Window(Settings)
 
 	local taskbar = Instance.new("Frame")
 	taskbar.Name = "Taskbar"
-	taskbar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	taskbar.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
 	taskbar.BorderSizePixel = 0
-	taskbar.AnchorPoint = Vector2.new(0.5, 1)
-	taskbar.Position = UDim2.new(0.5, 0, 1, -15)
-	taskbar.Size = UDim2.new(1, -50, 0, 70)
-	
+	taskbar.Position = UDim2.new(0.5, 0, 1, -90)
+	taskbar.Size = UDim2.new(0, 700, 0, 56)
+
 	local taskbarUICorner = Instance.new("UICorner")
-	taskbarUICorner.CornerRadius = UDim.new(0, 20)
+	taskbarUICorner.CornerRadius = UDim.new(0, 16)
 	taskbarUICorner.Parent = taskbar
-	
+
 	local taskbarUIStroke = Instance.new("UIStroke")
 	taskbarUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	taskbarUIStroke.Color = Color3.fromRGB(255, 255, 255)
-	taskbarUIStroke.Transparency = 0.95
+	taskbarUIStroke.Transparency = 0.93
 	taskbarUIStroke.Parent = taskbar
 	
 	local taskbarPadding = Instance.new("UIPadding")
@@ -936,7 +952,9 @@ function CryptHub:Window(Settings)
 	closeBtn.Parent = windowControlsTaskbar
 	
 	windowControlsTaskbar.Parent = taskbar
-	taskbar.Parent = base
+	taskbar.Parent = gui
+	taskbar.Position = UDim2.new(0.5, 0, 1, -90)
+	taskbar.Size = UDim2.new(0, 600, 0, 70)
 	
 	local draggingTaskbar = false
 	local dragStartTaskbar, startPosTaskbar
@@ -1427,32 +1445,33 @@ function CryptHub:Window(Settings)
 				local SectionFunctions = {}
 				local parentSection = Settings.Side == "Right" and rightSection or leftSection
 
-				local section = Instance.new("Frame")
+	local section = Instance.new("Frame")
 				section.Name = (Settings.Name or "Section") .. "Section"
 				section.AutomaticSize = Enum.AutomaticSize.Y
-				section.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+				section.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				section.BackgroundTransparency = 0.97
 				section.BorderSizePixel = 0
 				section.Size = UDim2.new(1, 0, 0, 0)
 
 				local sectionUICorner = Instance.new("UICorner")
-				sectionUICorner.CornerRadius = UDim.new(0, 20)
+				sectionUICorner.CornerRadius = UDim.new(0, 12)
 				sectionUICorner.Parent = section
 
 				local sectionUIStroke = Instance.new("UIStroke")
 				sectionUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 				sectionUIStroke.Color = Color3.fromRGB(255, 255, 255)
-				sectionUIStroke.Transparency = 0.9
+				sectionUIStroke.Transparency = 0.93
 				sectionUIStroke.Parent = section
 
 				local sectionUIPadding = Instance.new("UIPadding")
-				sectionUIPadding.PaddingBottom = UDim.new(0, 24)
-				sectionUIPadding.PaddingLeft = UDim.new(0, 24)
-				sectionUIPadding.PaddingRight = UDim.new(0, 24)
-				sectionUIPadding.PaddingTop = UDim.new(0, 24)
+				sectionUIPadding.PaddingBottom = UDim.new(0, 12)
+				sectionUIPadding.PaddingLeft = UDim.new(0, 12)
+				sectionUIPadding.PaddingRight = UDim.new(0, 12)
+				sectionUIPadding.PaddingTop = UDim.new(0, 12)
 				sectionUIPadding.Parent = section
 
 				local sectionUIListLayout = Instance.new("UIListLayout")
-				sectionUIListLayout.Padding = UDim.new(0, 16)
+				sectionUIListLayout.Padding = UDim.new(0, 10)
 				sectionUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 				sectionUIListLayout.Parent = section
 
@@ -1537,16 +1556,21 @@ function CryptHub:Window(Settings)
 					local function toggleToggle(Instant)
 						on = not on
 						if on then
-							Tween(toggleButton, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {BackgroundColor3 = Color3.fromRGB(119, 174, 94)}):Play()
-							Tween(togglerHead, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {Position = UDim2.fromOffset(18, 2)}):Play()
+							Tween(toggleButton, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.15}):Play()
+							Tween(togglerHead, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {Position = UDim2.fromOffset(18, 2), BackgroundColor3 = Color3.fromRGB(17, 17, 17)}):Play()
 						else
-							Tween(toggleButton, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {BackgroundColor3 = Color3.fromRGB(87, 86, 86)}):Play()
-							Tween(togglerHead, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {Position = UDim2.fromOffset(2, 2)}):Play()
+							Tween(toggleButton, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.9}):Play()
+							Tween(togglerHead, TweenInfo.new(Instant and 0 or 0.3, Enum.EasingStyle.Circular), {Position = UDim2.fromOffset(2, 2), BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
 						end
 						ToggleFunctions.Value = on
 						if Settings.Callback then Settings.Callback(on) end
 					end
-					if on then toggleToggle(true) end
+					if on then 
+						toggleButton.BackgroundTransparency = 0.15
+						toggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						togglerHead.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+						togglerHead.Position = UDim2.fromOffset(18, 2)
+					end
 					toggleButton.MouseButton1Click:Connect(toggleToggle)
 					toggle.Parent = section
 					function ToggleFunctions:SetValue(value)

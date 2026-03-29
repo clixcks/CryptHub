@@ -1,4 +1,4 @@
--- 3
+-- 4
 
 local CryptHub = {
 	Options = {},
@@ -365,13 +365,15 @@ function CryptHub:Window(Settings)
 	windowControlsDivider.Size = UDim2.new(1, 0, 0, 1)
 	windowControlsDivider.Parent = windowControls
 
-	windowControls.Parent = sidebar
+	-- Window controls removed from sidebar - only in taskbar
+	-- local windowControls = Instance.new("Frame")
+	-- window controls code disabled
 
 	local information = Instance.new("Frame")
 	information.Name = "Information"
 	information.BackgroundTransparency = 1
-	information.Position = UDim2.fromOffset(0, 31)
-	information.Size = UDim2.new(1, 0, 0, 70)
+	information.Position = UDim2.fromOffset(0, 0)
+	information.Size = UDim2.new(1, 0, 0, 60)
 
 	local informationDivider = Instance.new("Frame")
 	informationDivider.Name = "Divider"
@@ -419,40 +421,30 @@ function CryptHub:Window(Settings)
 	local titleFrame = Instance.new("Frame")
 	titleFrame.Name = "TitleFrame"
 	titleFrame.BackgroundTransparency = 1
-	titleFrame.Size = UDim2.fromScale(1, 1)
+	titleFrame.Size = UDim2.new(1, 0, 1, 0)
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
-	title.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold)
+	title.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
 	title.Text = Settings.Title or "Title"
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	title.TextSize = 20
+	title.TextSize = 16
 	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.TextYAlignment = Enum.TextYAlignment.Top
-	title.AutomaticSize = Enum.AutomaticSize.Y
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, -30, 0, 0)
+	title.Size = UDim2.new(1, 0, 0, 22)
 	title.Parent = titleFrame
 
 	local subtitle = Instance.new("TextLabel")
 	subtitle.Name = "Subtitle"
 	subtitle.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
 	subtitle.Text = Settings.Subtitle or "Sub Title"
-	subtitle.TextColor3 = Color3.fromRGB(150, 150, 150)
-	subtitle.TextSize = 13
+	subtitle.TextColor3 = Color3.fromRGB(128, 128, 128)
+	subtitle.TextSize = 12
 	subtitle.TextXAlignment = Enum.TextXAlignment.Left
-	subtitle.TextYAlignment = Enum.TextYAlignment.Top
-	subtitle.AutomaticSize = Enum.AutomaticSize.Y
 	subtitle.BackgroundTransparency = 1
-	subtitle.LayoutOrder = 1
-	subtitle.Size = UDim2.new(1, -30, 0, 0)
+	subtitle.Position = UDim2.fromOffset(0, 22)
+	subtitle.Size = UDim2.new(1, 0, 0, 16)
 	subtitle.Parent = titleFrame
-
-	local titleFrameUIListLayout = Instance.new("UIListLayout")
-	titleFrameUIListLayout.Padding = UDim.new(0, 3)
-	titleFrameUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	titleFrameUIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	titleFrameUIListLayout.Parent = titleFrame
 
 	titleFrame.Parent = informationHolder
 	informationHolder.Parent = information
@@ -461,8 +453,8 @@ function CryptHub:Window(Settings)
 	local sidebarGroup = Instance.new("Frame")
 	sidebarGroup.Name = "SidebarGroup"
 	sidebarGroup.BackgroundTransparency = 1
-	sidebarGroup.Position = UDim2.fromOffset(0, 110)
-	sidebarGroup.Size = UDim2.new(1, 0, 1, -110)
+	sidebarGroup.Position = UDim2.fromOffset(0, 70)
+	sidebarGroup.Size = UDim2.new(1, 0, 1, -70)
 
 	local userInfo = Instance.new("Frame")
 	userInfo.Name = "UserInfo"
@@ -878,9 +870,9 @@ function CryptHub:Window(Settings)
 		return appIcon
 	end
 	
-	createAppIcon("Home", assets.globe, Color3.fromRGB(120, 90, 190), 1)
-	createAppIcon("Users", assets.userInfoBlurred, Color3.fromRGB(70, 160, 90), 2) 
-	createAppIcon("Music", assets.dropdown, Color3.fromRGB(200, 80, 80), 3)  
+	createAppIcon("Home", assets.globe, Color3.fromRGB(108, 63, 197), 1)
+	createAppIcon("Users", assets.userInfoBlurred, Color3.fromRGB(45, 143, 78), 2) 
+	createAppIcon("Music", assets.dropdown, Color3.fromRGB(197, 63, 63), 3)  
 	
 	local settingsBtn = Instance.new("ImageButton")
 	settingsBtn.Name = "SettingsBtn"
@@ -1584,13 +1576,13 @@ function CryptHub:Window(Settings)
 					local header = Instance.new("TextLabel")
 					header.Name = "Header"
 					header.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
-					header.Text = Settings.Text or ""
+					header.Text = (Settings.Text or ""):upper()
 					header.TextColor3 = Color3.fromRGB(255, 255, 255)
-					header.TextSize = 14
-					header.TextTransparency = 0.2
+					header.TextSize = 11
+					header.TextTransparency = 0.4
 					header.TextXAlignment = Enum.TextXAlignment.Left
 					header.BackgroundTransparency = 1
-					header.Size = UDim2.new(1, 0, 0, 22)
+					header.Size = UDim2.new(1, 0, 0, 18)
 					header.Parent = section
 					if Flag then CryptHub.Options[Flag] = {Class = "Header", Value = header} end
 					return header
@@ -2076,6 +2068,70 @@ function CryptHub:Window(Settings)
 					end
 					if Flag then CryptHub.Options[Flag] = ColorpickerFunctions end
 					return ColorpickerFunctions
+				end
+
+				function SectionFunctions:Row(Settings, Flag)
+					local RowFunctions = {Settings = Settings, Class = "Row", Value = Settings.Value or "—"}
+					local row = Instance.new("Frame")
+					row.Name = "Row"
+					row.BackgroundTransparency = 1
+					row.Size = UDim2.new(1, 0, 0, 26)
+
+					local rowLabel = Instance.new("TextLabel")
+					rowLabel.Name = "Label"
+					rowLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+					rowLabel.Text = Settings.Label or "Label"
+					rowLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+					rowLabel.TextSize = 13
+					rowLabel.TextXAlignment = Enum.TextXAlignment.Left
+					rowLabel.BackgroundTransparency = 1
+					rowLabel.Size = UDim2.new(1, -60, 1, 0)
+					rowLabel.Parent = row
+
+					local rowValue = Instance.new("TextLabel")
+					rowValue.Name = "Value"
+					rowValue.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+					rowValue.Text = Settings.Value or "—"
+					rowValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+					rowValue.TextSize = 13
+					rowValue.TextXAlignment = Enum.TextXAlignment.Right
+					rowValue.BackgroundTransparency = 1
+					rowValue.AnchorPoint = Vector2.new(1, 0)
+					rowValue.Position = UDim2.fromScale(1, 0)
+					rowValue.Size = UDim2.fromOffset(60, 26)
+					rowValue.Parent = row
+
+					row.Parent = section
+
+					function RowFunctions:SetValue(value)
+						rowValue.Text = value or "—"
+						RowFunctions.Value = value
+					end
+
+					if Flag then CryptHub.Options[Flag] = RowFunctions end
+					return RowFunctions
+				end
+
+				function SectionFunctions:StatusBadge(Settings, Flag)
+					local BadgeFunctions = {Settings = Settings, Class = "StatusBadge", Value = Settings.Value or "Offline"}
+					local badge = Instance.new("TextLabel")
+					badge.Name = "StatusBadge"
+					badge.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
+					badge.Text = Settings.Value or "Online"
+					badge.TextColor3 = Color3.fromRGB(45, 143, 78)
+					badge.TextSize = 11
+					badge.BackgroundColor3 = Color3.fromRGB(45, 143, 78)
+					badge.BackgroundTransparency = 0.8
+					badge.BorderSizePixel = 0
+					badge.Size = UDim2.fromOffset(50, 20)
+					badge.Parent = section
+
+					local badgeCorner = Instance.new("UICorner")
+					badgeCorner.CornerRadius = UDim.new(1, 0)
+					badgeCorner.Parent = badge
+
+					if Flag then CryptHub.Options[Flag] = BadgeFunctions end
+					return BadgeFunctions
 				end
 
 				return SectionFunctions

@@ -1356,14 +1356,14 @@ function CryptHub:Window(Settings)
 			tabContent.Parent = content
 
 			local tabContentUIPadding = Instance.new("UIPadding")
-			tabContentUIPadding.PaddingLeft = UDim.new(0, 20)
-			tabContentUIPadding.PaddingRight = UDim.new(0, 20)
-			tabContentUIPadding.PaddingTop = UDim.new(0, 10)
+			tabContentUIPadding.PaddingLeft = UDim.new(0, 24)
+			tabContentUIPadding.PaddingRight = UDim.new(0, 24)
+			tabContentUIPadding.PaddingTop = UDim.new(0, 20)
 			tabContentUIPadding.PaddingBottom = UDim.new(0, 20)
 			tabContentUIPadding.Parent = tabContent
 
 			local tabContentUIListLayout = Instance.new("UIListLayout")
-			tabContentUIListLayout.Padding = UDim.new(0, 15)
+			tabContentUIListLayout.Padding = UDim.new(0, 20)
 			tabContentUIListLayout.FillDirection = Enum.FillDirection.Horizontal
 			tabContentUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			tabContentUIListLayout.Parent = tabContent
@@ -1371,11 +1371,11 @@ function CryptHub:Window(Settings)
 			local leftSection = Instance.new("Frame")
 			leftSection.Name = "LeftSection"
 			leftSection.BackgroundTransparency = 1
-			leftSection.Size = UDim2.new(0.5, -10, 1, 0)
+			leftSection.Size = UDim2.new(0.5, -12, 1, 0)
 			leftSection.Parent = tabContent
 
 			local leftSectionUIListLayout = Instance.new("UIListLayout")
-			leftSectionUIListLayout.Padding = UDim.new(0, 15)
+			leftSectionUIListLayout.Padding = UDim.new(0, 16)
 			leftSectionUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			leftSectionUIListLayout.Parent = leftSection
 
@@ -1383,11 +1383,11 @@ function CryptHub:Window(Settings)
 			rightSection.Name = "RightSection"
 			rightSection.BackgroundTransparency = 1
 			rightSection.LayoutOrder = 1
-			rightSection.Size = UDim2.new(0.5, -10, 1, 0)
+			rightSection.Size = UDim2.new(0.5, -12, 1, 0)
 			rightSection.Parent = tabContent
 
 			local rightSectionUIListLayout = Instance.new("UIListLayout")
-			rightSectionUIListLayout.Padding = UDim.new(0, 15)
+			rightSectionUIListLayout.Padding = UDim.new(0, 16)
 			rightSectionUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			rightSectionUIListLayout.Parent = rightSection
 
@@ -1435,24 +1435,24 @@ function CryptHub:Window(Settings)
 				section.Size = UDim2.new(1, 0, 0, 0)
 
 				local sectionUICorner = Instance.new("UICorner")
-				sectionUICorner.CornerRadius = UDim.new(0, 16)
+				sectionUICorner.CornerRadius = UDim.new(0, 20)
 				sectionUICorner.Parent = section
 
 				local sectionUIStroke = Instance.new("UIStroke")
 				sectionUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 				sectionUIStroke.Color = Color3.fromRGB(255, 255, 255)
-				sectionUIStroke.Transparency = 0.95
+				sectionUIStroke.Transparency = 0.9
 				sectionUIStroke.Parent = section
 
 				local sectionUIPadding = Instance.new("UIPadding")
-				sectionUIPadding.PaddingBottom = UDim.new(0, 20)
-				sectionUIPadding.PaddingLeft = UDim.new(0, 20)
-				sectionUIPadding.PaddingRight = UDim.new(0, 20)
-				sectionUIPadding.PaddingTop = UDim.new(0, 20)
+				sectionUIPadding.PaddingBottom = UDim.new(0, 24)
+				sectionUIPadding.PaddingLeft = UDim.new(0, 24)
+				sectionUIPadding.PaddingRight = UDim.new(0, 24)
+				sectionUIPadding.PaddingTop = UDim.new(0, 24)
 				sectionUIPadding.Parent = section
 
 				local sectionUIListLayout = Instance.new("UIListLayout")
-				sectionUIListLayout.Padding = UDim.new(0, 12)
+				sectionUIListLayout.Padding = UDim.new(0, 16)
 				sectionUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 				sectionUIListLayout.Parent = section
 

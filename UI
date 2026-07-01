@@ -126,20 +126,41 @@ function CryptHub:Window(options)
 	local realUser = "@" .. LocalPlayer.Name
 	local isHidden = false
 	
-	local avText = Create("TextLabel", { Text = string.sub(realDisplay, 1, 1), FontFace = Fonts.Bold, TextSize = 14, TextColor3 = Colors.TextPrimary, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = avatarCircle })
+	local avatarImage = ""
+	pcall(function()
+		avatarImage = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+	end)
+	
+	local avatarImg = Create("ImageLabel", { Image = avatarImage, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = avatarCircle })
+	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = avatarImg })
+	
+	local avText = Create("TextLabel", { Text = "?", FontFace = Fonts.Bold, TextSize = 14, TextColor3 = Colors.TextPrimary, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false, Parent = avatarCircle })
 	local displayLbl = Create("TextLabel", { Text = realDisplay, FontFace = Fonts.SemiBold, TextSize = 14, TextColor3 = Colors.TextPrimary, Position = UDim2.fromOffset(60, 18), Size = UDim2.new(1, -100, 0, 16), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = userProfile })
 	local userLbl = Create("TextLabel", { Text = realUser, FontFace = Fonts.Regular, TextSize = 12, TextColor3 = Colors.TextSecondary, Position = UDim2.fromOffset(60, 36), Size = UDim2.new(1, -100, 0, 14), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = userProfile })
 	local hideBtn = Create("TextButton", { Text = "→", FontFace = Fonts.Regular, TextSize = 16, TextColor3 = Colors.TextSecondary, Position = UDim2.new(1, -36, 0, 26), Size = UDim2.fromOffset(16, 16), BackgroundTransparency = 1, Parent = userProfile })
 	hideBtn.MouseButton1Click:Connect(function()
 		isHidden = not isHidden
-		if isHidden then avText.Text = "?"; displayLbl.Text = "Crypt Hub"; userLbl.Text = "@?"; hideBtn.TextColor3 = Colors.TextPrimary
-		else avText.Text = string.sub(realDisplay, 1, 1); displayLbl.Text = realDisplay; userLbl.Text = realUser; hideBtn.TextColor3 = Colors.TextSecondary end
+		if isHidden then 
+			avatarImg.Visible = false
+			avText.Visible = true
+			displayLbl.Text = "Crypt Hub"
+			userLbl.Text = "@?"
+			hideBtn.TextColor3 = Colors.TextPrimary
+		else 
+			avatarImg.Visible = true
+			avText.Visible = false
+			displayLbl.Text = realDisplay
+			userLbl.Text = realUser
+			hideBtn.TextColor3 = Colors.TextSecondary 
+		end
 	end)
 
 	local contentArea = Create("Frame", { Size = UDim2.new(1, -215, 1, -55), Position = UDim2.fromOffset(215, 0), BackgroundColor3 = Colors.Background, Parent = mainContainer })
 	Create("UICorner", { CornerRadius = UDim.new(0, 12), Parent = contentArea })
 	Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = contentArea })
 	local contentContainer = Create("Frame", { Size = UDim2.new(1, -30, 1, -30), Position = UDim2.fromOffset(15, 15), BackgroundTransparency = 1, Parent = contentArea })
+
+	local soundInstance = Create("Sound", { Volume = 0.5, Parent = sg })
 
 	local bottomBar = Create("Frame", { Size = UDim2.new(1, 0, 0, 45), Position = UDim2.new(0, 0, 1, -45), BackgroundColor3 = Colors.Panel, Parent = mainContainer })
 	Create("UICorner", { CornerRadius = UDim.new(0, 12), Parent = bottomBar })
@@ -148,29 +169,207 @@ function CryptHub:Window(options)
 	Create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = bottomBar })
 	Create("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), Parent = bottomBar })
 	
-	local function createShortcut(color, icon, order)
-		local btn = Create("TextButton", { Size = UDim2.fromOffset(33, 33), BackgroundColor3 = color, Text = icon, TextColor3 = Color3.fromRGB(255, 255, 255), TextSize = 14, LayoutOrder = order, Parent = bottomBar })
-		Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = btn })
+	local musicPage = Create("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ScrollBarThickness = 0, Visible = false, Parent = contentContainer })
+	local musicHeader = Create("Frame", { Size = UDim2.new(1, 0, 0, 50), BackgroundTransparency = 1, Parent = musicPage })
+	Create("TextLabel", { Text = "Audio", Font = Enum.Font.BuilderSansExtraBold, TextSize = 18, TextColor3 = Colors.TextPrimary, Size = UDim2.new(1, 0, 0, 24), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = musicHeader })
+	Create("TextLabel", { Text = "Sub Title", FontFace = Fonts.Medium, TextSize = 13, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), Position = UDim2.fromOffset(0, 24), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = musicHeader })
+	Create("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromOffset(0, 50), BackgroundColor3 = Colors.Stroke, BorderSizePixel = 0, Parent = musicHeader })
+
+	local musicCard = Create("Frame", { Position = UDim2.fromOffset(0, 60), Size = UDim2.new(1, 0, 0, 240), BackgroundColor3 = Colors.Panel, Parent = musicPage })
+	Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = musicCard })
+	Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = musicCard })
+	Create("UIPadding", { PaddingTop=UDim.new(0,16), PaddingBottom=UDim.new(0,16), PaddingLeft=UDim.new(0,20), PaddingRight=UDim.new(0,20), Parent=musicCard })
+	Create("UIListLayout", { Padding = UDim.new(0, 12), SortOrder = Enum.SortOrder.LayoutOrder, Parent = musicCard })
+
+	Create("TextLabel", { LayoutOrder = 1, Text = "AUDIO PLAYER", Font = Enum.Font.BuilderSansExtraBold, TextSize = 11, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = musicCard })
+
+	local sIdRow = Create("Frame", { LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 50), BackgroundTransparency = 1, Parent = musicCard })
+	Create("TextLabel", { Text = "Sound ID", FontFace = Fonts.Medium, TextSize = 12, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = sIdRow })
+	local sIdBg = Create("Frame", { Size = UDim2.new(1, 0, 0, 30), Position = UDim2.new(0, 0, 1, -30), BackgroundColor3 = Colors.Element, Parent = sIdRow })
+	Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = sIdBg }); Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = sIdBg })
+	local sIdBox = Create("TextBox", { Text = "", PlaceholderText = "Enter sound ID...", FontFace = Fonts.Regular, TextSize = 12, TextColor3 = Colors.TextPrimary, PlaceholderColor3 = Colors.TextSecondary, BackgroundTransparency = 1, Size = UDim2.new(1, -16, 1, 0), Position = UDim2.fromOffset(8, 0), TextXAlignment = Enum.TextXAlignment.Left, Parent = sIdBg })
+
+	local posRow = Create("Frame", { LayoutOrder = 3, Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, Parent = musicCard })
+	Create("TextLabel", { Text = "Position", FontFace = Fonts.Medium, TextSize = 12, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = posRow })
+	local sSliderBg = Create("Frame", { Size = UDim2.new(1, 0, 0, 6), Position = UDim2.new(0, 0, 0, 18), BackgroundColor3 = Colors.Element, Parent = posRow })
+	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = sSliderBg })
+	local sSliderFill = Create("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Colors.TextPrimary, Parent = sSliderBg })
+	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = sSliderFill })
+	local sSliderKnob = Create("Frame", { Size = UDim2.fromOffset(14, 14), Position = UDim2.new(0, -7, 0.5, -7), BackgroundColor3 = Colors.TextPrimary, Parent = sSliderFill })
+	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = sSliderKnob })
+	local sSliderBtn = Create("TextButton", { Size = UDim2.fromScale(1, 3), Position = UDim2.new(0,0,0.5,-9), BackgroundTransparency = 1, Text = "", Parent = sSliderBg })
+	Create("TextLabel", { Text = "0%", FontFace = Fonts.Regular, TextSize = 10, TextColor3 = Colors.TextSecondary, Size = UDim2.fromOffset(24, 14), Position = UDim2.new(0, 0, 1, 4), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = sSliderBg })
+	Create("TextLabel", { Text = "100%", FontFace = Fonts.Regular, TextSize = 10, TextColor3 = Colors.TextSecondary, Size = UDim2.fromOffset(30, 14), Position = UDim2.new(1, -30, 1, 4), TextXAlignment = Enum.TextXAlignment.Right, BackgroundTransparency = 1, Parent = sSliderBg })
+
+	local volRow = Create("Frame", { LayoutOrder = 4, Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, Parent = musicCard })
+	local volHeaderRow = Create("Frame", { Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, Parent = volRow })
+	Create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), VerticalAlignment = Enum.VerticalAlignment.Center, Parent = volHeaderRow })
+	Create("ImageLabel", { Image = "rbxassetid://7743876773", Size = UDim2.fromOffset(14, 14), BackgroundTransparency = 1, ImageColor3 = Colors.TextSecondary, Parent = volHeaderRow })
+	Create("TextLabel", { Text = "Volume", FontFace = Fonts.Medium, TextSize = 12, TextColor3 = Colors.TextSecondary, AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1, Parent = volHeaderRow })
+	local volSliderBg = Create("Frame", { Size = UDim2.new(1, 0, 0, 6), Position = UDim2.new(0, 0, 0, 18), BackgroundColor3 = Colors.Element, Parent = volRow })
+	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = volSliderBg })
+	local volSliderFill = Create("Frame", { Size = UDim2.fromScale(0.5, 1), BackgroundColor3 = Colors.TextPrimary, Parent = volSliderBg })
+	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = volSliderFill })
+	local volSliderKnob = Create("Frame", { Size = UDim2.fromOffset(14, 14), Position = UDim2.new(1, -7, 0.5, -7), BackgroundColor3 = Colors.TextPrimary, Parent = volSliderFill })
+	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = volSliderKnob })
+	local volSliderBtn = Create("TextButton", { Size = UDim2.fromScale(1, 3), Position = UDim2.new(0,0,0.5,-9), BackgroundTransparency = 1, Text = "", Parent = volSliderBg })
+	Create("TextLabel", { Text = "0%", FontFace = Fonts.Regular, TextSize = 10, TextColor3 = Colors.TextSecondary, Size = UDim2.fromOffset(24, 14), Position = UDim2.new(0, 0, 1, 4), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = volSliderBg })
+	Create("TextLabel", { Text = "100%", FontFace = Fonts.Regular, TextSize = 10, TextColor3 = Colors.TextSecondary, Size = UDim2.fromOffset(30, 14), Position = UDim2.new(1, -30, 1, 4), TextXAlignment = Enum.TextXAlignment.Right, BackgroundTransparency = 1, Parent = volSliderBg })
+
+	local btnsRow = Create("Frame", { LayoutOrder = 5, Size = UDim2.new(1, 0, 0, 28), BackgroundTransparency = 1, Parent = musicCard })
+	Create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8), Parent = btnsRow })
+	
+	local function createMusicBtn(label, iconText)
+		local btn = Create("TextButton", { Size = UDim2.fromOffset(72, 28), BackgroundColor3 = Colors.Element, Text = iconText .. " " .. label, TextColor3 = Colors.TextPrimary, FontFace = Fonts.Medium, TextSize = 12, AutoButtonColor = false, BorderSizePixel = 0, Parent = btnsRow })
+		Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = btn })
+		Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = btn })
 		return btn
 	end
-	createShortcut(Color3.fromRGB(105, 50, 235), "⌂", 0); createShortcut(Color3.fromRGB(30, 160, 80), "👥", 1); createShortcut(Color3.fromRGB(220, 60, 60), "♫", 2)
+	local playBtn = createMusicBtn("Play", "▶")
+	local pauseBtn = createMusicBtn("Pause", "⏸")
+	local stopBtn = createMusicBtn("Stop", "⏹")
+
+	sIdBox.FocusLost:Connect(function(enter)
+		local rawId = sIdBox.Text
+		local cleanId = rawId:match("%d+")
+		if cleanId then
+			soundInstance.SoundId = "rbxassetid://" .. cleanId
+		end
+	end)
+
+	playBtn.MouseButton1Click:Connect(function() soundInstance:Play() end)
+	pauseBtn.MouseButton1Click:Connect(function() soundInstance:Pause() end)
+	stopBtn.MouseButton1Click:Connect(function() soundInstance:Stop() end)
+
+	local sSliderDragging = false
+	local function updateSlider(input)
+		local clamped = math.clamp((input.Position.X - sSliderBg.AbsolutePosition.X) / sSliderBg.AbsoluteSize.X, 0, 1)
+		sSliderFill.Size = UDim2.fromScale(clamped, 1)
+		sSliderKnob.Position = UDim2.new(clamped, -6, 0.5, -6)
+		if soundInstance.TimeLength > 0 then
+			soundInstance.TimePosition = clamped * soundInstance.TimeLength
+		end
+	end
+	sSliderBtn.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			sSliderDragging = true
+			updateSlider(input)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			sSliderDragging = false
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if sSliderDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			updateSlider(input)
+		end
+	end)
+
+	local volDragging = false
+	local function updateVolSlider(input)
+		local clamped = math.clamp((input.Position.X - volSliderBg.AbsolutePosition.X) / volSliderBg.AbsoluteSize.X, 0, 1)
+		volSliderFill.Size = UDim2.fromScale(clamped, 1)
+		volSliderKnob.Position = UDim2.new(1, -7, 0.5, -7)
+		soundInstance.Volume = clamped
+	end
+	volSliderBtn.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			volDragging = true
+			updateVolSlider(input)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			volDragging = false
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if volDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			updateVolSlider(input)
+		end
+	end)
+
+	task.spawn(function()
+		while task.wait(0.1) do
+			if soundInstance.IsPlaying and soundInstance.TimeLength > 0 and not sSliderDragging then
+				local pct = soundInstance.TimePosition / soundInstance.TimeLength
+				sSliderFill.Size = UDim2.fromScale(pct, 1)
+				sSliderKnob.Position = UDim2.new(pct, -7, 0.5, -7)
+			end
+		end
+	end)
+
+	local previousActiveTab = nil
+	local onMusicPlayer = false
+
+	local function showMusicPlayer()
+		if onMusicPlayer then return end
+		onMusicPlayer = true
+		if WindowContext.CurrentTab then
+			previousActiveTab = WindowContext.CurrentTab
+			previousActiveTab.Page.Visible = false
+			previousActiveTab.Button.BackgroundTransparency = 1
+			previousActiveTab.Icon.TextColor3 = Colors.TextSecondary
+			if previousActiveTab.Icon:FindFirstChildOfClass("ImageLabel") then
+				previousActiveTab.Icon:FindFirstChildOfClass("ImageLabel").ImageColor3 = Colors.TextSecondary
+			end
+			previousActiveTab.Text.TextColor3 = Colors.TextSecondary
+		end
+		musicPage.Visible = true
+	end
+
+	local function restorePreviousTab()
+		if not onMusicPlayer then return end
+		onMusicPlayer = false
+		musicPage.Visible = false
+		local target = previousActiveTab or WindowContext.Tabs[1]
+		if target then
+			WindowContext.CurrentTab = target
+			target.Page.Visible = true
+			target.Button.BackgroundTransparency = 0.8
+			target.Icon.TextColor3 = Colors.TextPrimary
+			if target.Icon:FindFirstChildOfClass("ImageLabel") then
+				target.Icon:FindFirstChildOfClass("ImageLabel").ImageColor3 = Colors.TextPrimary
+			end
+			target.Text.TextColor3 = Colors.TextPrimary
+		end
+	end
+
+	local function createShortcut(color, iconAsset, order, callback)
+		local btn = Create("ImageButton", { Size = UDim2.fromOffset(33, 33), BackgroundColor3 = color, AutoButtonColor = false, BorderSizePixel = 0, LayoutOrder = order, Parent = bottomBar })
+		Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = btn })
+		local img = Create("ImageLabel", { Image = iconAsset, Size = UDim2.fromOffset(16, 16), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, ImageColor3 = Color3.fromRGB(255, 255, 255), Parent = btn })
+		if callback then btn.MouseButton1Click:Connect(callback) end
+		return btn
+	end
+
+	createShortcut(Color3.fromRGB(105, 50, 235), "rbxassetid://11347112400", 0, restorePreviousTab)
+	createShortcut(Color3.fromRGB(30, 160, 80), "rbxassetid://124929180840291", 1)
+	createShortcut(Color3.fromRGB(220, 60, 60), "rbxassetid://10747360415", 2, showMusicPlayer)
 	
 	local controlsHolder = Create("Frame", { Size = UDim2.new(0, 140, 1, -12), Position = UDim2.new(1, -150, 0, 6), BackgroundTransparency = 1, Parent = bottomBar })
 	Create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = controlsHolder })
 	
-	local function createControl(icon, color, order, callback)
-		local btn = Create("TextButton", { Size = UDim2.fromOffset(33, 33), BackgroundColor3 = color, Text = icon, TextColor3 = Color3.fromRGB(220, 220, 220), TextSize = 16, LayoutOrder = order, Parent = controlsHolder })
-		Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = btn })
+	local function createControl(iconAsset, color, order, callback)
+		local btn = Create("ImageButton", { Size = UDim2.fromOffset(33, 33), BackgroundColor3 = color, AutoButtonColor = false, BorderSizePixel = 0, LayoutOrder = order, Parent = controlsHolder })
+		Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = btn })
+		local img = Create("ImageLabel", { Image = iconAsset, Size = UDim2.fromOffset(16, 16), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, ImageColor3 = Color3.fromRGB(220, 220, 220), Parent = btn })
 		if callback then btn.MouseButton1Click:Connect(callback) end
 		return btn
 	end
-	createControl("⚙", Colors.Element, 0)
-	createControl("−", Colors.Element, 1, ToggleMenu)
-	createControl("✕", Color3.fromRGB(220, 60, 60), 2, function() sg:Destroy() end)
+	createControl("rbxassetid://6720824670", Colors.Element, 0)
+	createControl("rbxassetid://10747358415", Colors.Element, 1, ToggleMenu)
+	createControl("rbxassetid://10152135063", Color3.fromRGB(220, 60, 60), 2, function() sg:Destroy() end)
 
 	local function BuildHomePage()
 		local homePage = Create("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ScrollBarThickness = 0, AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false, Parent = contentContainer })
-		local homeScroll = Create("ScrollingFrame", { Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, ScrollBarThickness = 0, Parent = homePage })
+		local homeHeader = Create("Frame", { Size = UDim2.new(1, 0, 0, 50), BackgroundTransparency = 1, Parent = homePage })
+		Create("TextLabel", { Text = "Home", Font = Enum.Font.BuilderSansExtraBold, TextSize = 18, TextColor3 = Colors.TextPrimary, Size = UDim2.new(1, 0, 0, 24), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = homeHeader })
+		Create("TextLabel", { Text = "Sub Title", FontFace = Fonts.Medium, TextSize = 13, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), Position = UDim2.fromOffset(0, 24), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = homeHeader })
+		Create("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromOffset(0, 50), BackgroundColor3 = Colors.Stroke, BorderSizePixel = 0, Parent = homeHeader })
+		local homeScroll = Create("ScrollingFrame", { Size = UDim2.new(1, 0, 1, -60), Position = UDim2.fromOffset(0, 60), BackgroundTransparency = 1, ScrollBarThickness = 0, Parent = homePage })
 		Create("UIListLayout", { Padding = UDim.new(0, 16), SortOrder = Enum.SortOrder.LayoutOrder, Parent = homeScroll })
 		
 		local topRow = Create("Frame", { Size = UDim2.new(1, 0, 0, 160), BackgroundTransparency = 1, LayoutOrder = 0, Parent = homeScroll })
@@ -196,18 +395,66 @@ function CryptHub:Window(options)
 		Create("UIListLayout", { Padding = UDim.new(0, 12), SortOrder = Enum.SortOrder.LayoutOrder, Parent = gameCard })
 		Create("TextLabel", { LayoutOrder = 1, Text = "GAME INFORMATION", Font = Enum.Font.BuilderSansExtraBold, TextSize = 11, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = gameCard })
 		Create("Frame", { LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = Colors.Stroke, BorderSizePixel = 0, Parent = gameCard })
-		local playVal = makeInfoRow(gameCard, "Playtime", "00:00:00", 3); local walkVal = makeInfoRow(gameCard, "Walkspeed", "—", 4); local jumpVal = makeInfoRow(gameCard, "Jump Power", "—", 5)
+		local playVal = makeInfoRow(gameCard, "Playtime", "00:00:00", 3)
+		playVal.TextColor3 = Color3.fromRGB(96, 165, 250)
+		local walkVal = makeInfoRow(gameCard, "Walkspeed", "—", 4); local jumpVal = makeInfoRow(gameCard, "Jump Power", "—", 5)
 		
-		local botCard = Create("Frame", { Size = UDim2.new(1, 0, 0, 120), BackgroundColor3 = Colors.Panel, LayoutOrder = 1, Parent = homeScroll })
+		local botCard = Create("Frame", { Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = Colors.Panel, LayoutOrder = 1, Parent = homeScroll })
 		Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = botCard }); Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = botCard }); Create("UIPadding", { PaddingTop=UDim.new(0,16), PaddingBottom=UDim.new(0,16), PaddingLeft=UDim.new(0,20), PaddingRight=UDim.new(0,20), Parent=botCard })
-		Create("UIListLayout", { Padding = UDim.new(0, 16), SortOrder = Enum.SortOrder.LayoutOrder, Parent = botCard })
-		local tRow = Create("Frame", { LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 26), BackgroundTransparency = 1, Parent = botCard })
-		Create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 20), Parent = tRow })
-		Create("TextLabel", { Text = "DISCLAIMERS", Font = Enum.Font.BuilderSansExtraBold, TextSize = 12, TextColor3 = Colors.TextSecondary, AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1, Parent = tRow })
-		local credLabel = Create("TextLabel", { Text = "CREDITS", Font = Enum.Font.BuilderSansExtraBold, TextSize = 12, TextColor3 = Colors.TextPrimary, BackgroundColor3 = Colors.Element, Size = UDim2.fromOffset(80, 26), Parent = tRow })
-		Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = credLabel }); Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = credLabel })
-		Create("Frame", { LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = Colors.Stroke, BorderSizePixel = 0, Parent = botCard })
-		makeInfoRow(botCard, "Developer", "—", 3); makeInfoRow(botCard, "Contributors", "—", 4)
+		Create("UIListLayout", { Padding = UDim.new(0, 12), SortOrder = Enum.SortOrder.LayoutOrder, Parent = botCard })
+
+		local tabSwitchRow = Create("Frame", { LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 26), BackgroundTransparency = 1, Parent = botCard })
+		Create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 10), VerticalAlignment = Enum.VerticalAlignment.Center, Parent = tabSwitchRow })
+
+		local warnTabBtn = Create("TextButton", { Size = UDim2.fromOffset(90, 26), BackgroundColor3 = Colors.Element, Text = "WARNINGS", Font = Enum.Font.BuilderSansExtraBold, TextSize = 11, TextColor3 = Colors.TextPrimary, AutoButtonColor = false, BorderSizePixel = 0, Parent = tabSwitchRow })
+		Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = warnTabBtn }); Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = warnTabBtn })
+
+		local credTabBtn = Create("TextButton", { Size = UDim2.fromOffset(80, 26), BackgroundTransparency = 1, Text = "CREDITS", Font = Enum.Font.BuilderSansExtraBold, TextSize = 11, TextColor3 = Colors.TextSecondary, AutoButtonColor = false, BorderSizePixel = 0, Parent = tabSwitchRow })
+
+		local warningsContent = Create("Frame", { LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Visible = true, Parent = botCard })
+		Create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = warningsContent })
+
+		local warnColor = Color3.fromRGB(60, 40, 5)
+		local warnStroke = Color3.fromRGB(100, 70, 10)
+		local warnTextColor = Color3.fromRGB(230, 150, 40)
+		local warnIcon = "⚠"
+
+		local function makeWarnCard(title, desc, order)
+			local card = Create("Frame", { LayoutOrder = order, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = warnColor, Parent = warningsContent })
+			Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = card })
+			Create("UIStroke", { Color = warnStroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = card })
+			Create("UIPadding", { PaddingTop=UDim.new(0,10), PaddingBottom=UDim.new(0,10), PaddingLeft=UDim.new(0,12), PaddingRight=UDim.new(0,12), Parent=card })
+			Create("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder, Parent = card })
+			local titleRow = Create("Frame", { LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Parent = card })
+			Create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), VerticalAlignment = Enum.VerticalAlignment.Center, Parent = titleRow })
+			Create("TextLabel", { Text = warnIcon, FontFace = Fonts.Bold, TextSize = 13, TextColor3 = warnTextColor, AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1, Parent = titleRow })
+			Create("TextLabel", { Text = title, FontFace = Fonts.Bold, TextSize = 13, TextColor3 = warnTextColor, AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1, Parent = titleRow })
+			Create("TextLabel", { LayoutOrder = 2, Text = desc, FontFace = Fonts.Regular, TextSize = 12, TextColor3 = Color3.fromRGB(180, 130, 60), Size = UDim2.new(1, 0, 0, 16), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = card })
+		end
+
+		makeWarnCard("Educational Use Only", "This software is provided for educational and demonstration purposes only.", 1)
+		makeWarnCard("Use at Your Own Risk", "The developer is not responsible for any damages or consequences of usage.", 2)
+		makeWarnCard("Terms of Service", "Using this may violate the terms of service of the target platform.", 3)
+
+		local creditsContent = Create("Frame", { LayoutOrder = 3, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Visible = false, Parent = botCard })
+		Create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = creditsContent })
+		makeInfoRow(creditsContent, "Developer", "—", 1); makeInfoRow(creditsContent, "Contributors", "—", 2)
+
+		local function setWarnActive(warn)
+			warningsContent.Visible = warn
+			creditsContent.Visible = not warn
+			if warn then
+				warnTabBtn.BackgroundTransparency = 0; warnTabBtn.TextColor3 = Colors.TextPrimary
+				credTabBtn.BackgroundTransparency = 1; credTabBtn.TextColor3 = Colors.TextSecondary
+			else
+				warnTabBtn.BackgroundTransparency = 1; warnTabBtn.TextColor3 = Colors.TextSecondary
+				credTabBtn.BackgroundTransparency = 0; credTabBtn.BackgroundColor3 = Colors.Element; credTabBtn.TextColor3 = Colors.TextPrimary
+				Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = credTabBtn })
+				Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = credTabBtn })
+			end
+		end
+		warnTabBtn.MouseButton1Click:Connect(function() setWarnActive(true) end)
+		credTabBtn.MouseButton1Click:Connect(function() setWarnActive(false) end)
 
 		local startTick = tick()
 		task.spawn(function()
@@ -247,10 +494,11 @@ function CryptHub:Window(options)
 		task.delay(opt.Time or 3, function() nFrame:Destroy() end)
 	end
 	
-	function WindowFunctions:TabGroup()
-		local SectionFunctions = {}
-		
-		function SectionFunctions:Tab(tabOptions)
+	local function createTab(tabOptions)
+		local tabName = tabOptions.Name or "Tab"
+		local isHome = (tabName == "Home")
+		local TabFunctions = { Settings = tabOptions }
+
 			local tabName = tabOptions.Name or "Tab"
 
 			local isHome = (tabName == "Home")
@@ -260,13 +508,9 @@ function CryptHub:Window(options)
 			local btn = Create("TextButton", { Size = UDim2.new(1, 0, 0, 36), BackgroundTransparency = 1, BackgroundColor3 = Colors.Element, Text = "", Parent = tabContainer })
 			Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = btn })
 			
-			local iconLbl = Create("TextLabel", { Text = isHome and "⌂" or "•", Size = UDim2.fromOffset(24, 24), Position = UDim2.new(0, 16, 0.5, -12), BackgroundTransparency = 1, TextColor3 = Colors.TextSecondary, TextSize = 16, Parent = btn })
-			if tabOptions.Image then
-
-				iconLbl.Text = ""
-				Create("ImageLabel", { Image = tabOptions.Image, Size = UDim2.fromOffset(16, 16), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, ImageColor3 = Colors.TextSecondary, Parent = iconLbl })
-			end
-			
+			local iconLbl = Create("TextLabel", { Text = "", Size = UDim2.fromOffset(24, 24), Position = UDim2.new(0, 16, 0.5, -12), BackgroundTransparency = 1, Parent = btn })
+			local tabImgAsset = tabOptions.Image or (isHome and "rbxassetid://11347112400" or "rbxassetid://10747375176")
+			Create("ImageLabel", { Image = tabImgAsset, Size = UDim2.fromOffset(16, 16), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, ImageColor3 = Colors.TextSecondary, Parent = iconLbl })
 			local textLbl = Create("TextLabel", { Text = tabName, FontFace = Fonts.Medium, Size = UDim2.new(1, -50, 1, 0), Position = UDim2.fromOffset(48, 0), BackgroundTransparency = 1, TextColor3 = Colors.TextSecondary, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = btn })
 
 			local page
@@ -276,7 +520,8 @@ function CryptHub:Window(options)
 				page = Create("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ScrollBarThickness = 0, Visible = false, AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = contentContainer })
 				local pageHeader = Create("Frame", { Size = UDim2.new(1, 0, 0, 50), BackgroundTransparency = 1, Parent = page })
 				Create("TextLabel", { Text = tabName, Font = Enum.Font.BuilderSansExtraBold, TextSize = 18, TextColor3 = Colors.TextPrimary, Size = UDim2.new(1, 0, 0, 24), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = pageHeader })
-				Create("TextLabel", { Text = "Configured options", FontFace = Fonts.Medium, TextSize = 13, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), Position = UDim2.fromOffset(0, 24), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = pageHeader })
+				Create("TextLabel", { Text = "Sub Title", FontFace = Fonts.Medium, TextSize = 13, TextColor3 = Colors.TextSecondary, Size = UDim2.new(1, 0, 0, 16), Position = UDim2.fromOffset(0, 24), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = pageHeader })
+				Create("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromOffset(0, 50), BackgroundColor3 = Colors.Stroke, BorderSizePixel = 0, Parent = pageHeader })
 			end
 			
 			local columnsHolder = Create("Frame", { Size = UDim2.new(1, 0, 1, -60), Position = UDim2.fromOffset(0, 60), BackgroundTransparency = 1, Parent = page })
@@ -288,6 +533,10 @@ function CryptHub:Window(options)
 			local Tab = { Button = btn, Icon = iconLbl, Text = textLbl, Page = page }
 			
 			btn.MouseButton1Click:Connect(function()
+				if onMusicPlayer then
+					onMusicPlayer = false
+					musicPage.Visible = false
+				end
 				if WindowContext.CurrentTab == Tab then return end
 				if WindowContext.CurrentTab then
 					WindowContext.CurrentTab.Button.BackgroundTransparency = 1
@@ -567,8 +816,19 @@ function CryptHub:Window(options)
 			end
 			
 			return TabFunctions
-		end
 		
+	end
+
+	local homeTab = createTab({ Name = "Home", Image = "rbxassetid://11347112400" })
+
+	function WindowFunctions:TabGroup()
+		local SectionFunctions = {}
+		function SectionFunctions:Tab(tabOptions)
+			if tabOptions.Name == "Home" then
+				return homeTab
+			end
+			return createTab(tabOptions)
+			end
 		return SectionFunctions
 	end
 	

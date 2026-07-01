@@ -1,8 +1,6 @@
-
-
 local CryptHub = {
 	Options = {},
-	Folder = "Maclib"
+	Folder = "CryptHub"
 }
 
 local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
@@ -87,6 +85,20 @@ function CryptHub:Window(options)
 	local notifyLayer = Create("Frame", { Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, ZIndex = 100, Parent = sg })
 	Create("UIListLayout", { Padding = UDim.new(0,10), HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Bottom, Parent = notifyLayer })
 	Create("UIPadding", { PaddingBottom = UDim.new(0,20), PaddingRight = UDim.new(0,20), Parent = notifyLayer })
+	local dropdownOverlay = Create("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ZIndex = 90, Parent = sg })
+	local MenuKeybind = options.Keybind or Enum.KeyCode.RightControl
+	local menuVisible = true
+	local function ToggleMenu()
+		menuVisible = not menuVisible
+		mainContainer.Visible = menuVisible
+		dropdownOverlay.Visible = menuVisible
+	end
+	UserInputService.InputEnded:Connect(function(inp, gpe)
+		if gpe then return end
+		if inp.KeyCode == MenuKeybind then
+			ToggleMenu()
+		end
+	end)
 
 	local mainContainer = Create("Frame", {
 		Name = "MainContainer", Size = UDim2.fromOffset(options.Size and options.Size.X.Offset or 880, options.Size and options.Size.Y.Offset or 560),
@@ -120,7 +132,7 @@ function CryptHub:Window(options)
 	local hideBtn = Create("TextButton", { Text = "→", FontFace = Fonts.Regular, TextSize = 16, TextColor3 = Colors.TextSecondary, Position = UDim2.new(1, -36, 0, 26), Size = UDim2.fromOffset(16, 16), BackgroundTransparency = 1, Parent = userProfile })
 	hideBtn.MouseButton1Click:Connect(function()
 		isHidden = not isHidden
-		if isHidden then avText.Text = "?"; displayLbl.Text = "Hidden"; userLbl.Text = "@?"; hideBtn.TextColor3 = Colors.TextPrimary
+		if isHidden then avText.Text = "?"; displayLbl.Text = "Crypt Hub"; userLbl.Text = "@?"; hideBtn.TextColor3 = Colors.TextPrimary
 		else avText.Text = string.sub(realDisplay, 1, 1); displayLbl.Text = realDisplay; userLbl.Text = realUser; hideBtn.TextColor3 = Colors.TextSecondary end
 	end)
 
@@ -153,7 +165,7 @@ function CryptHub:Window(options)
 		return btn
 	end
 	createControl("⚙", Colors.Element, 0)
-	createControl("−", Colors.Element, 1, function() mainContainer.Visible = not mainContainer.Visible end)
+	createControl("−", Colors.Element, 1, ToggleMenu)
 	createControl("✕", Color3.fromRGB(220, 60, 60), 2, function() sg:Destroy() end)
 
 	local function BuildHomePage()
@@ -374,19 +386,26 @@ function CryptHub:Window(options)
 					local DFuncs = { Settings = opts, Class = "Dropdown", Value = opts.Default or (opts.Options and opts.Options[1]) }
 					local row = Create("Frame", { Size = UDim2.new(1, 0, 0, 32), BackgroundTransparency = 1, Parent = secFrame })
 					local lbl = Create("TextLabel", { Text = opts.Name or "Dropdown", FontFace = Fonts.Medium, TextSize = 13, TextColor3 = Colors.TextSecondary, Size = UDim2.new(0.5, 0, 1, 0), TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Parent = row })
-					local dbg = Create("TextButton", { Size = UDim2.new(0.5, 0, 0, 26), Position = UDim2.new(0.5, 0, 0.5, -13), BackgroundColor3 = Colors.Element, Text = "", Parent = row })
+					local dbg = Create("TextButton", { Size = UDim2.new(0.5, 0, 0, 26), Position = UDim2.new(0.5, 0, 0.5, -13), BackgroundColor3 = Colors.Element, Text = "", AutoButtonColor = false, BorderSizePixel = 0, Parent = row })
 					Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = dbg })
 					Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = dbg })
 					local dlbl = Create("TextLabel", { Text = tostring(DFuncs.Value) .. "  ⌄", FontFace = Fonts.Regular, TextSize = 12, TextColor3 = Colors.TextPrimary, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = dbg })
 					
-					local listFrame = Create("Frame", { Size = UDim2.new(0.5, 0, 0, #(opts.Options or {}) * 24 + 4), Position = UDim2.new(0.5, 0, 0.5, 15), BackgroundColor3 = Colors.Element, Visible = false, ZIndex = 5, Parent = row })
+					local listFrame = Create("Frame", { Size = UDim2.new(0.5, 0, 0, 0), BackgroundColor3 = Colors.Element, Visible = false, ZIndex = 95, Parent = dropdownOverlay })
 					Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = listFrame }); Create("UIStroke", { Color = Colors.Stroke, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = listFrame }); Create("UIListLayout", { Padding = UDim.new(0, 0), Parent = listFrame }); Create("UIPadding", { PaddingTop=UDim.new(0,2), PaddingBottom=UDim.new(0,2), Parent=listFrame })
+					
+					RunService.RenderStepped:Connect(function()
+						if listFrame.Visible then
+							listFrame.Position = UDim2.fromOffset(dbg.AbsolutePosition.X, dbg.AbsolutePosition.Y + dbg.AbsoluteSize.Y + 2)
+							listFrame.Size = UDim2.fromOffset(dbg.AbsoluteSize.X, listFrame.Size.Y.Offset)
+						end
+					end)
 					
 					function DFuncs:UpdateOptions(newOpts)
 						for _, child in ipairs(listFrame:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
-						listFrame.Size = UDim2.new(0.5, 0, 0, #newOpts * 24 + 4)
+						listFrame.Size = UDim2.fromOffset(dbg.AbsoluteSize.X, #newOpts * 24 + 4)
 						for _, opt in ipairs(newOpts) do
-							local obtn = Create("TextButton", { Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1, Text = "  " .. tostring(opt), TextColor3 = Colors.TextSecondary, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6, Parent = listFrame })
+							local obtn = Create("TextButton", { Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1, Text = "  " .. tostring(opt), TextColor3 = Colors.TextSecondary, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, AutoButtonColor = false, BorderSizePixel = 0, ZIndex = 96, Parent = listFrame })
 							obtn.MouseButton1Click:Connect(function()
 								DFuncs.Value = opt; dlbl.Text = tostring(opt) .. "  ⌄"; listFrame.Visible = false
 								if flag then CryptHub.Options[flag] = DFuncs end

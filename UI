@@ -448,9 +448,30 @@ function UILib:Window(Settings)
 		MakeCorner(b, T.Rfull)
 		return b
 	end
-	local settingsCtrl = MakeCtrlBtn("⚙", T.TabActive, T.TextSecondary, 0)
-	local minimizeCtrl = MakeCtrlBtn("—", T.TabActive, T.TextSecondary, 1)
-	local closeCtrl    = MakeCtrlBtn("",  Color3.fromRGB(200,50,55), Color3.fromRGB(255,255,255), 2)
+	local _serverTabSelectFn = nil
+	local serverQuickBtn = New("TextButton", {
+		BackgroundColor3 = T.TabActive,
+		BorderSizePixel  = 0,
+		Size             = UDim2.fromOffset(28,28),
+		Text             = "",
+		AutoButtonColor  = false,
+		LayoutOrder      = 0,
+		Parent           = winCtrlF,
+	})
+	MakeCorner(serverQuickBtn, T.Rfull)
+	New("TextLabel", {
+		BackgroundTransparency=1, BorderSizePixel=0,
+		Size=UDim2.fromScale(1,1),
+		Text="⊞", TextColor3=T.TextSecondary, TextSize=14,
+		Parent=serverQuickBtn,
+	})
+	serverQuickBtn.MouseButton1Click:Connect(function()
+		if _serverTabSelectFn then _serverTabSelectFn() end
+	end)
+
+	local settingsCtrl = MakeCtrlBtn("⚙", T.TabActive, T.TextSecondary, 1)
+	local minimizeCtrl = MakeCtrlBtn("—", T.TabActive, T.TextSecondary, 2)
+	local closeCtrl    = MakeCtrlBtn("",  Color3.fromRGB(200,50,55), Color3.fromRGB(255,255,255), 3)
 	New("ImageLabel", {
 		BackgroundTransparency = 1, BorderSizePixel = 0,
 		AnchorPoint = Vector2.new(0.5,0.5),
@@ -460,6 +481,188 @@ function UILib:Window(Settings)
 		ImageColor3 = Color3.fromRGB(255,255,255),
 		Parent      = closeCtrl,
 	})
+
+	local globalSettingsOpen = false
+	local globalSettingsModal = nil
+	local _hideUsernameToggled = false
+	local _customUsername = LocalPlayer.DisplayName
+
+	local function OpenGlobalSettings()
+		if globalSettingsOpen then
+			if globalSettingsModal then
+				local s=Instance.new("UIScale"); s.Parent=globalSettingsModal
+				Tween(globalSettingsModal,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{GroupTransparency=1}):Play()
+				Tween(s,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{Scale=0.95}):Play()
+				task.delay(0.15,function() globalSettingsModal:Destroy(); globalSettingsModal=nil; globalSettingsOpen=false end)
+			end
+			return
+		end
+		globalSettingsOpen=true
+
+		local canvas=New("CanvasGroup",{
+			BackgroundColor3=Color3.fromRGB(0,0,0),
+			BackgroundTransparency=0.55,
+			BorderSizePixel=0,
+			GroupTransparency=1,
+			Size=UDim2.fromScale(1,1),
+			ZIndex=18,
+			Parent=win,
+		})
+		globalSettingsModal=canvas
+
+		local panel=New("Frame",{
+			AnchorPoint=Vector2.new(1,1),
+			AutomaticSize=Enum.AutomaticSize.Y,
+			BackgroundColor3=T.Card,
+			BorderSizePixel=0,
+			Position=UDim2.new(1,-8,1,-BOT_H-8),
+			Size=UDim2.fromOffset(270,0),
+			ZIndex=19,
+			Parent=canvas,
+		})
+		MakeCorner(panel,T.R)
+		MakeStroke(panel,T.BorderLight,0.72)
+		MakePad(panel,14,14,14,14)
+		MakeList(panel,12)
+
+		local pScale=New("UIScale",{Scale=0.92,Parent=panel})
+		Tween(canvas,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{GroupTransparency=0}):Play()
+		Tween(pScale,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{Scale=1}):Play()
+
+		New("TextLabel",{
+			BackgroundTransparency=1,BorderSizePixel=0,
+			AutomaticSize=Enum.AutomaticSize.Y,Size=UDim2.fromScale(1,0),
+			Text="Global Settings",TextColor3=T.TextPrimary,TextSize=15,
+			FontFace=FF(Enum.FontWeight.Bold),TextXAlignment=Enum.TextXAlignment.Left,
+			LayoutOrder=0,Parent=panel,
+		})
+
+		New("Frame",{
+			BackgroundColor3=T.Border,BackgroundTransparency=0.6,BorderSizePixel=0,
+			Size=UDim2.new(1,0,0,1),LayoutOrder=1,Parent=panel,
+		})
+
+		local function GSRow(lo)
+			local r=New("Frame",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				Size=UDim2.new(1,0,0,38),LayoutOrder=lo,Parent=panel,
+			})
+			return r
+		end
+
+		local row1=GSRow(2)
+		New("TextLabel",{
+			BackgroundTransparency=1,BorderSizePixel=0,
+			AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromScale(0,0.5),
+			AutomaticSize=Enum.AutomaticSize.Y,Size=UDim2.new(0.65,0,0,0),
+			Text="Hide Username",TextColor3=T.TextSecondary,TextSize=13,
+			FontFace=FF(),TextXAlignment=Enum.TextXAlignment.Left,Parent=row1,
+		})
+		local hideTrack=New("Frame",{
+			AnchorPoint=Vector2.new(1,0.5),BackgroundColor3=_hideUsernameToggled and T.ToggleOn or T.ToggleOff,
+			BorderSizePixel=0,Position=UDim2.fromScale(1,0.5),Size=UDim2.fromOffset(44,24),Parent=row1,
+		})
+		MakeCorner(hideTrack,T.Rfull)
+		local hideThumb=New("Frame",{
+			AnchorPoint=Vector2.new(0,0.5),BackgroundColor3=Color3.fromRGB(255,255,255),BorderSizePixel=0,
+			Position=_hideUsernameToggled and UDim2.new(1,-21,0.5,0) or UDim2.new(0,3,0.5,0),
+			Size=UDim2.fromOffset(18,18),Parent=hideTrack,
+		})
+		MakeCorner(hideThumb,T.Rfull)
+		hideTrack.InputBegan:Connect(function(inp)
+			if inp.UserInputType~=Enum.UserInputType.MouseButton1 then return end
+			_hideUsernameToggled=not _hideUsernameToggled
+			Tween(hideTrack,TweenInfo.new(0.15,Enum.EasingStyle.Quad),
+				{BackgroundColor3=_hideUsernameToggled and T.ToggleOn or T.ToggleOff}):Play()
+			Tween(hideThumb,TweenInfo.new(0.15,Enum.EasingStyle.Quad),
+				{Position=_hideUsernameToggled and UDim2.new(1,-21,0.5,0) or UDim2.new(0,3,0.5,0)}):Play()
+			WindowFunctions:SetUserInfoState(not _hideUsernameToggled)
+		end)
+
+		local lbl2=New("TextLabel",{
+			BackgroundTransparency=1,BorderSizePixel=0,
+			AutomaticSize=Enum.AutomaticSize.Y,Size=UDim2.fromScale(1,0),
+			Text="Display Name",TextColor3=T.TextSecondary,TextSize=12,
+			FontFace=FF(),TextXAlignment=Enum.TextXAlignment.Left,
+			LayoutOrder=3,Parent=panel,
+		})
+		local nameBox=New("TextBox",{
+			BackgroundColor3=T.InputBg,BorderSizePixel=0,
+			ClearTextOnFocus=false,
+			PlaceholderText="Enter display name...",PlaceholderColor3=T.TextMuted,
+			Text=_customUsername,TextColor3=T.TextPrimary,TextSize=13,
+			FontFace=FF(),TextXAlignment=Enum.TextXAlignment.Left,
+			Size=UDim2.new(1,0,0,34),LayoutOrder=4,Parent=panel,
+		})
+		MakeCorner(nameBox,T.Rsm)
+		MakeStroke(nameBox,T.BorderLight,0.78)
+		MakePad(nameBox,0,10,0,10)
+		nameBox.FocusLost:Connect(function()
+			local v=nameBox.Text:gsub("^%s+",""):gsub("%s+$","")
+			if v=="" then v=LocalPlayer.DisplayName end
+			_customUsername=v
+			nameBox.Text=v
+			WindowFunctions:UpdateTitle(Settings.Title or "Title")
+		end)
+
+		local closeRow=New("Frame",{
+			BackgroundTransparency=1,BorderSizePixel=0,
+			Size=UDim2.new(1,0,0,32),LayoutOrder=5,Parent=panel,
+		})
+		local doneBtn=New("TextButton",{
+			AnchorPoint=Vector2.new(1,0.5),BackgroundColor3=T.ButtonBg,BorderSizePixel=0,
+			Position=UDim2.fromScale(1,0.5),Size=UDim2.fromOffset(70,28),
+			Text="Done",TextColor3=T.TextPrimary,TextSize=12,
+			FontFace=FF(),AutoButtonColor=false,Parent=closeRow,
+		})
+		MakeCorner(doneBtn,T.Rsm)
+		doneBtn.MouseButton1Click:Connect(function()
+			Tween(canvas,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{GroupTransparency=1}):Play()
+			Tween(pScale,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{Scale=0.92}):Play()
+			task.delay(0.15,function() canvas:Destroy(); globalSettingsModal=nil; globalSettingsOpen=false end)
+		end)
+
+		canvas.InputBegan:Connect(function(inp)
+			if inp.UserInputType==Enum.UserInputType.MouseButton1 then
+				local mp=UserInputService:GetMouseLocation()
+				local pa=panel.AbsolutePosition; local ps=panel.AbsoluteSize
+				if mp.X<pa.X or mp.X>pa.X+ps.X or mp.Y<pa.Y or mp.Y>pa.Y+ps.Y then
+					doneBtn.MouseButton1Click:Fire()
+				end
+			end
+		end)
+	end
+
+	settingsCtrl.MouseButton1Click:Connect(OpenGlobalSettings)
+
+	function WindowFunctions:AddRightBarButton(Cfg)
+		local btn=New("TextButton",{
+			BackgroundColor3=T.TabActive,BorderSizePixel=0,
+			Size=UDim2.fromOffset(28,28),Text=Cfg.IconText or "",
+			TextColor3=T.TextSecondary,TextSize=14,
+			AutoButtonColor=false,
+			LayoutOrder=Cfg.Order or 0,
+			Parent=winCtrlF,
+		})
+		MakeCorner(btn,T.Rfull)
+		if Cfg.Image then
+			New("ImageLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(0.5,0.5),
+				Position=UDim2.fromScale(0.5,0.5),
+				Size=UDim2.fromOffset(16,16),
+				Image=Cfg.Image,
+				ImageColor3=Color3.fromRGB(255,255,255),
+				Parent=btn,
+			})
+		end
+		if Cfg.Callback then btn.MouseButton1Click:Connect(Cfg.Callback) end
+		return btn
+	end
+
+	function WindowFunctions:ConnectServerButton(fn)
+		_serverTabSelectFn = fn
+	end
 
 	do
 		local dragging, dragStart, startPos = false, nil, nil
@@ -863,6 +1066,42 @@ function UILib:Window(Settings)
 					function BF:SetVisibility(s) row.Visible = s end
 					if Flag then UILib.Options[Flag] = BF end
 					return BF
+				end
+
+				function SF:ButtonRow(Cfg)
+					Sep()
+					local holder = New("Frame", {
+						BackgroundTransparency=1, BorderSizePixel=0,
+						AutomaticSize=Enum.AutomaticSize.Y,
+						Size=UDim2.new(1,0,0,0),
+						LayoutOrder=elemOrder, Parent=elemWrap,
+					})
+					elemOrder=elemOrder+1
+					MakePad(holder,8,0,6,0)
+					MakeList(holder,8,Enum.FillDirection.Horizontal,
+						Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center)
+					local btns=Cfg.Buttons or {}
+					for _,bd in ipairs(btns) do
+						local b=New("TextButton",{
+							BackgroundColor3=T.ButtonBg, BorderSizePixel=0,
+							AutomaticSize=Enum.AutomaticSize.X,
+							Size=UDim2.new(0,0,0,32),
+							Text=(bd.Icon and bd.Icon.." " or "")..(bd.Name or ""),
+							TextColor3=T.TextSecondary, TextSize=13,
+							FontFace=FF(), AutoButtonColor=false,
+							Parent=holder,
+						})
+						MakeCorner(b,T.Rsm)
+						MakeStroke(b,T.BorderLight,0.72)
+						MakePad(b,0,14,0,14)
+						if bd.Callback then b.MouseButton1Click:Connect(function() task.spawn(bd.Callback) end) end
+						b.MouseEnter:Connect(function()
+							Tween(b,TweenInfo.new(0.1,Enum.EasingStyle.Sine),{BackgroundColor3=Color3.fromRGB(62,62,74)}):Play()
+						end)
+						b.MouseLeave:Connect(function()
+							Tween(b,TweenInfo.new(0.1,Enum.EasingStyle.Sine),{BackgroundColor3=T.ButtonBg}):Play()
+						end)
+					end
 				end
 
 				function SF:Toggle(Cfg, Flag)
@@ -2837,32 +3076,596 @@ function UILib:Demo()
 		Image      = "rbxassetid://7059338404",
 		QuickImage = "rbxassetid://7059338404",
 	})
-	local musicSec = musicTab:Section({ Side="Left", Name="Audio Player" })
-	musicSec:Input({
-		Name="Sound ID", Placeholder="Enter Sound ID...",
-		AcceptedCharacters="Numeric",
-	}, "Music_SoundID")
-	musicSec:Slider({ Name="Volume",   Minimum=0, Maximum=1,   Default=0.5,
-		DisplayMethod="Percent", Callback=function(v) print("Volume:",v) end
-	}, "Music_Volume")
-	musicSec:Slider({ Name="Position", Minimum=0, Maximum=100, Default=0,
-		DisplayMethod="Round",   Callback=function(v) print("Position:",v) end
-	}, "Music_Position")
-	local musicBtns = musicTab:Section({ Side="Right", Name="Controls" })
-	musicBtns:Button({ Name="Play",  Callback=function() print("Play")  end })
-	musicBtns:Button({ Name="Pause", Callback=function() print("Pause") end })
-	musicBtns:Button({ Name="Stop",  Callback=function() print("Stop")  end })
+
+	do
+		local musicSec = musicTab:Section({ Side="Full", Name="Audio Player" })
+
+		local _sound = Instance.new("Sound")
+		_sound.Volume  = 0.5
+		_sound.Looped  = false
+		pcall(function() _sound.Parent = game:GetService("SoundService") end)
+
+		local _currentSoundId = ""
+		local _posSlider = nil
+		local _volSlider = nil
+		local _posUpdating = false
+
+		musicSec:Label({ Text="Sound ID" })
+
+		local sidRef = musicSec:Input({
+			Name        = "",
+			Placeholder = "Enter sound ID...",
+			Callback    = function(v)
+				local id = v:gsub("[^%d]","")
+				if id ~= "" then
+					_currentSoundId = id
+					_sound.SoundId  = "rbxassetid://"..id
+				end
+			end,
+		}, "Music_SoundID")
+
+		_posSlider = musicSec:Slider({
+			Name          = "Position",
+			Minimum       = 0,
+			Maximum       = 100,
+			Default       = 0,
+			DisplayMethod = "Percent",
+			Callback      = function(v)
+				if _posUpdating then return end
+				local len = _sound.TimeLength
+				if len and len > 0 then
+					pcall(function() _sound.TimePosition = (v/100) * len end)
+				end
+			end,
+		}, "Music_Position")
+
+		_volSlider = musicSec:Slider({
+			Name          = "♪ Volume",
+			Minimum       = 0,
+			Maximum       = 100,
+			Default       = 50,
+			DisplayMethod = "Percent",
+			Callback      = function(v)
+				_sound.Volume = v / 100
+			end,
+		}, "Music_Volume")
+
+		musicSec:ButtonRow({
+			Buttons = {
+				{ Icon="▶", Name="Play",  Callback=function()
+					if _currentSoundId == "" then
+						Window:Notify({ Title="Audio Player", Description="Enter a Sound ID first." })
+						return
+					end
+					_sound:Play()
+				end },
+				{ Icon="⏸", Name="Pause", Callback=function()
+					_sound:Pause()
+				end },
+				{ Icon="□", Name="Stop",  Callback=function()
+					_sound:Stop()
+					if _posSlider and _posSlider.UpdateValue then
+						_posUpdating=true
+						_posSlider:UpdateValue(0)
+						_posUpdating=false
+					end
+				end },
+			}
+		})
+
+		RunService.Heartbeat:Connect(function()
+			if unloaded or not _sound.IsPlaying then return end
+			local len = _sound.TimeLength
+			if not len or len <= 0 then return end
+			local pct = math.clamp((_sound.TimePosition / len) * 100, 0, 100)
+			if _posSlider and _posSlider.UpdateValue then
+				_posUpdating=true
+				_posSlider:UpdateValue(math.floor(pct))
+				_posUpdating=false
+			end
+		end)
+	end
+
+	local playerTab = TG:Tab({
+		Name  = "Leaderboard",
+		Image = "rbxassetid://15927926340",
+	})
+
+	do
+		local lbSec = playerTab:Section({ Side="Full", Name="Player Leaderboard" })
+
+		local RANK_COLORS = {
+			Color3.fromRGB(255, 178, 0),
+			Color3.fromRGB(200, 200, 210),
+			Color3.fromRGB(180,  95,  35),
+		}
+		local STATUS_COLORS = {
+			Online  = Color3.fromRGB(50,  195, 75),
+			Idle    = Color3.fromRGB(230, 165, 0),
+			Offline = Color3.fromRGB(100, 100, 115),
+		}
+
+		local lbScroll = nil
+		local lbRows   = {}
+
+		local function GetLeadstat(plr, key)
+			local ls = plr:FindFirstChild("leaderstats")
+			if not ls then return nil end
+			local v = ls:FindFirstChild(key)
+			return v and v.Value
+		end
+
+		local function GetPlayerStatus(plr)
+			local char = plr.Character
+			if not char then return "Offline" end
+			local hum = char:FindFirstChildWhichIsA("Humanoid")
+			if not hum or hum.Health <= 0 then return "Offline" end
+			return "Online"
+		end
+
+		local function FormatScore(n)
+			if type(n) ~= "number" then return tostring(n or "—") end
+			local s = tostring(math.floor(n))
+			return s:reverse():gsub("(%d%d%d)","%1,"):reverse():gsub("^,","")
+		end
+
+		local function BuildHeaderRow(parent)
+			local hdr = New("Frame",{
+				BackgroundTransparency=1, BorderSizePixel=0,
+				Size=UDim2.new(1,0,0,28), LayoutOrder=0, Parent=parent,
+			})
+			local cols = {
+				{ text="#",      xScale=0,     w=0.05 },
+				{ text="PLAYER", xScale=0.06,  w=0.45 },
+				{ text="LEVEL",  xScale=0.52,  w=0.12, align=Enum.TextXAlignment.Right },
+				{ text="SCORE",  xScale=0.66,  w=0.14, align=Enum.TextXAlignment.Right },
+				{ text="STATUS", xScale=0.82,  w=0.18, align=Enum.TextXAlignment.Right },
+			}
+			for _, c in ipairs(cols) do
+				New("TextLabel",{
+					BackgroundTransparency=1, BorderSizePixel=0,
+					AnchorPoint=Vector2.new(0,0.5),
+					Position=UDim2.fromScale(c.xScale, 0.5),
+					Size=UDim2.new(c.w,0,1,0),
+					Text=c.text,
+					TextColor3=T.TextMuted,
+					TextSize=10,
+					FontFace=FF(Enum.FontWeight.SemiBold),
+					TextXAlignment=c.align or Enum.TextXAlignment.Left,
+					Parent=hdr,
+				})
+			end
+			New("Frame",{
+				BackgroundColor3=T.Border,BackgroundTransparency=0.6,
+				BorderSizePixel=0,
+				AnchorPoint=Vector2.new(0,1),Position=UDim2.fromScale(0,1),
+				Size=UDim2.new(1,0,0,1),Parent=hdr,
+			})
+		end
+
+		local function BuildPlayerRow(parent, rank, plr, lo)
+			local row = New("Frame",{
+				BackgroundColor3=T.InputBg,
+				BackgroundTransparency=0.55,
+				BorderSizePixel=0,
+				Size=UDim2.new(1,0,0,44),
+				LayoutOrder=lo,
+				Parent=parent,
+			})
+			MakeCorner(row, T.Rsm)
+
+			local rankColor = RANK_COLORS[rank] or T.TextMuted
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(0,0.5), Position=UDim2.new(0,4,0.5,0),
+				Size=UDim2.new(0.04,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+				Text=tostring(rank), TextColor3=rankColor, TextSize=12,
+				FontFace=FF(rank<=3 and Enum.FontWeight.Bold or Enum.FontWeight.Regular),
+				TextXAlignment=Enum.TextXAlignment.Left, Parent=row,
+			})
+
+			local avatarCircle = New("Frame",{
+				BackgroundColor3=Color3.fromHSV((rank*0.13)%1, 0.55, 0.65),
+				BorderSizePixel=0,
+				AnchorPoint=Vector2.new(0,0.5),
+				Position=UDim2.new(0.05,0,0.5,0),
+				Size=UDim2.fromOffset(28,28),
+				Parent=row,
+			})
+			MakeCorner(avatarCircle, T.Rfull)
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				Size=UDim2.fromScale(1,1),
+				Text=plr.Name:sub(1,1):upper(),
+				TextColor3=Color3.fromRGB(255,255,255),
+				TextSize=13, FontFace=FF(Enum.FontWeight.Bold), Parent=avatarCircle,
+			})
+
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(0,0.5),
+				Position=UDim2.new(0.12,0,0.5,0),
+				Size=UDim2.new(0.37,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+				Text=plr.Name, TextColor3=T.TextPrimary, TextSize=13,
+				FontFace=FF(Enum.FontWeight.Medium),
+				TextXAlignment=Enum.TextXAlignment.Left, Parent=row,
+			})
+
+			local lvl = GetLeadstat(plr,"Level") or GetLeadstat(plr,"Rank") or "—"
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(1,0.5),
+				Position=UDim2.fromScale(0.62,0.5),
+				Size=UDim2.fromOffset(40,0), AutomaticSize=Enum.AutomaticSize.Y,
+				Text=tostring(lvl), TextColor3=T.TextSecondary, TextSize=12,
+				TextXAlignment=Enum.TextXAlignment.Right, Parent=row,
+			})
+
+			local score = GetLeadstat(plr,"Score") or GetLeadstat(plr,"Points") or GetLeadstat(plr,"Cash") or 0
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(1,0.5),
+				Position=UDim2.fromScale(0.80,0.5),
+				Size=UDim2.fromOffset(60,0), AutomaticSize=Enum.AutomaticSize.Y,
+				Text=FormatScore(score),
+				TextColor3=T.TextPrimary, TextSize=12,
+				FontFace=FF(Enum.FontWeight.Bold),
+				TextXAlignment=Enum.TextXAlignment.Right, Parent=row,
+			})
+
+			local status   = GetPlayerStatus(plr)
+			local dotColor = STATUS_COLORS[status] or STATUS_COLORS.Online
+			local dotRow   = New("Frame",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(1,0.5),
+				Position=UDim2.fromScale(1,0.5),
+				Size=UDim2.fromOffset(58,16),
+				Parent=row,
+			})
+			MakeList(dotRow,4,Enum.FillDirection.Horizontal,
+				Enum.HorizontalAlignment.Right,Enum.VerticalAlignment.Center)
+			New("Frame",{
+				BackgroundColor3=dotColor, BorderSizePixel=0,
+				Size=UDim2.fromOffset(8,8), LayoutOrder=0, Parent=dotRow,
+			}):FindFirstChildWhichIsA("UICorner") or MakeCorner(dotRow:FindFirstChildWhichIsA("Frame"),T.Rfull)
+			local dotF = dotRow:FindFirstChildWhichIsA("Frame")
+			if dotF then MakeCorner(dotF,T.Rfull) end
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AutomaticSize=Enum.AutomaticSize.X,
+				Size=UDim2.new(0,0,1,0),
+				Text=status,
+				TextColor3=dotColor, TextSize=11,
+				FontFace=FF(), LayoutOrder=1, Parent=dotRow,
+			})
+		end
+
+		local function RefreshLeaderboard()
+			if lbScroll then lbScroll:ClearAllChildren() end
+			if not lbScroll then return end
+			MakeList(lbScroll,6)
+			MakePad(lbScroll,8,8,8,8)
+			BuildHeaderRow(lbScroll)
+
+			local plrs = Players:GetPlayers()
+			table.sort(plrs, function(a,b)
+				local sa = GetLeadstat(a,"Score") or GetLeadstat(a,"Points") or GetLeadstat(a,"Cash") or 0
+				local sb = GetLeadstat(b,"Score") or GetLeadstat(b,"Points") or GetLeadstat(b,"Cash") or 0
+				return (type(sa)=="number" and sa or 0) > (type(sb)=="number" and sb or 0)
+			end)
+			for i,plr in ipairs(plrs) do
+				BuildPlayerRow(lbScroll, i, plr, i)
+			end
+		end
+
+		local lbHolder = New("Frame",{
+			BackgroundTransparency=1, BorderSizePixel=0,
+			Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+			LayoutOrder=10, Parent=lbSec.Settings and lbSec or nil,
+		})
+
+		local lbScrollFrame = New("ScrollingFrame",{
+			BackgroundTransparency=1, BorderSizePixel=0,
+			Size=UDim2.new(1,0,0,340),
+			CanvasSize=UDim2.new(0,0,0,0),
+			AutomaticCanvasSize=Enum.AutomaticSize.Y,
+			ScrollBarThickness=3,
+			ScrollBarImageColor3=T.Border,
+			LayoutOrder=1,
+		})
+
+		lbSec:Header({ Text="" })
+
+		task.spawn(function()
+			task.wait(0.1)
+
+			local innerSec = lbSec
+			local sf = New("ScrollingFrame",{
+				BackgroundTransparency=1, BorderSizePixel=0,
+				Size=UDim2.new(1,-28,0,340),
+				CanvasSize=UDim2.new(0,0,0,0),
+				AutomaticCanvasSize=Enum.AutomaticSize.Y,
+				ScrollBarThickness=3,
+				ScrollBarImageColor3=T.Border,
+				LayoutOrder=99,
+				Parent=innerSec,
+			})
+			MakeList(sf,6)
+			MakePad(sf,4,4,4,4)
+			lbScroll = sf
+			RefreshLeaderboard()
+		end)
+
+		Players.PlayerAdded:Connect(function() task.wait(1); RefreshLeaderboard() end)
+		Players.PlayerRemoving:Connect(function() task.wait(0.1); RefreshLeaderboard() end)
+
+		lbSec:Button({ Name="Refresh", Callback=function()
+			RefreshLeaderboard()
+			Window:Notify({ Title="Leaderboard", Description="Refreshed." })
+		end })
+	end
+
+	local serverTab = TG:Tab({
+		Name  = "Servers",
+		Image = "rbxassetid://9405931578",
+	})
+	Window:ConnectServerButton(function() serverTab:Select() end)
+
+	local _serverPages  = 5
+	local _serverList   = {}
+
+	do
+		local svSec = serverTab:Section({ Side="Full", Name="Serverlist" })
+
+		local svScroll = nil
+		local svStatus = nil
+		local TeleportService = UILib.GetService("TeleportService")
+
+		local function HttpGet(url)
+			if request then
+				local r = request({ Url=url, Method="GET" })
+				return r and r.Body
+			elseif syn and syn.request then
+				local r = syn.request({ Url=url, Method="GET" })
+				return r and r.Body
+			elseif http_request then
+				local r = http_request({ Url=url, Method="GET" })
+				return r and r.Body
+			else
+				local ok, r = pcall(function() return HttpService:GetAsync(url) end)
+				return ok and r or nil
+			end
+		end
+
+		local function PingColor(ms)
+			if ms <= 50  then return Color3.fromRGB(50,195,75)  end
+			if ms <= 100 then return Color3.fromRGB(230,165,0)  end
+			return Color3.fromRGB(220,60,60)
+		end
+
+		local function JoinServer(jobId)
+			local ok, err = pcall(function()
+				TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, LocalPlayer)
+			end)
+			if not ok then
+				Window:Notify({ Title="Servers", Description="Join failed: "..tostring(err) })
+			end
+		end
+
+		local function BuildServerRow(parent, data, lo)
+			local row = New("Frame",{
+				BackgroundColor3=T.InputBg,
+				BackgroundTransparency=0.55,
+				BorderSizePixel=0,
+				Size=UDim2.new(1,0,0,54),
+				LayoutOrder=lo,
+				Parent=parent,
+			})
+			MakeCorner(row, T.Rsm)
+
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,12,0.35,0),
+				AutomaticSize=Enum.AutomaticSize.Y,Size=UDim2.new(0.45,0,0,0),
+				Text="Server "..lo, TextColor3=T.TextPrimary, TextSize=13,
+				FontFace=FF(Enum.FontWeight.SemiBold),
+				TextXAlignment=Enum.TextXAlignment.Left, Parent=row,
+			})
+			local region = "Unknown"
+			if data.ping then
+				if data.ping < 40 then region = "US East"
+				elseif data.ping < 70 then region = "US West"
+				elseif data.ping < 100 then region = "EU West"
+				else region = "Asia" end
+			end
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,12,0.72,0),
+				AutomaticSize=Enum.AutomaticSize.Y,Size=UDim2.new(0.4,0,0,0),
+				Text=region, TextColor3=T.TextMuted, TextSize=11,
+				TextXAlignment=Enum.TextXAlignment.Left, Parent=row,
+			})
+
+			local rightF = New("Frame",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AnchorPoint=Vector2.new(1,0.5),
+				Position=UDim2.new(1,-12,0.5,0),
+				Size=UDim2.fromOffset(190,32),
+				Parent=row,
+			})
+			MakeList(rightF,10,Enum.FillDirection.Horizontal,
+				Enum.HorizontalAlignment.Right,Enum.VerticalAlignment.Center)
+
+			New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AutomaticSize=Enum.AutomaticSize.X,Size=UDim2.new(0,0,1,0),
+				Text=tostring(data.playing or "?").."/"..tostring(data.maxPlayers or "?"),
+				TextColor3=T.TextSecondary,TextSize=12,FontFace=FF(),
+				LayoutOrder=0,Parent=rightF,
+			})
+			if data.ping then
+				New("TextLabel",{
+					BackgroundTransparency=1,BorderSizePixel=0,
+					AutomaticSize=Enum.AutomaticSize.X,Size=UDim2.new(0,0,1,0),
+					Text=tostring(data.ping).."ms",
+					TextColor3=PingColor(data.ping),TextSize=12,
+					FontFace=FF(Enum.FontWeight.SemiBold),
+					LayoutOrder=1,Parent=rightF,
+				})
+			end
+			local jBtn = New("TextButton",{
+				BackgroundColor3=T.ButtonBg,BorderSizePixel=0,
+				Size=UDim2.fromOffset(56,28),
+				Text="Join",TextColor3=T.TextPrimary,TextSize=12,
+				FontFace=FF(Enum.FontWeight.Medium),AutoButtonColor=false,
+				LayoutOrder=2,Parent=rightF,
+			})
+			MakeCorner(jBtn,T.Rsm)
+			MakeStroke(jBtn,T.BorderLight,0.72)
+			jBtn.MouseButton1Click:Connect(function() JoinServer(data.id) end)
+			jBtn.MouseEnter:Connect(function()
+				Tween(jBtn,TweenInfo.new(0.1,Enum.EasingStyle.Sine),
+					{BackgroundColor3=Color3.fromRGB(62,62,74)}):Play()
+			end)
+			jBtn.MouseLeave:Connect(function()
+				Tween(jBtn,TweenInfo.new(0.1,Enum.EasingStyle.Sine),
+					{BackgroundColor3=T.ButtonBg}):Play()
+			end)
+		end
+
+		local function ClearScroll()
+			if svScroll then
+				for _,c in ipairs(svScroll:GetChildren()) do
+					if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end
+				end
+			end
+		end
+
+		local function SetStatus(txt)
+			if svStatus then svStatus.Text = txt end
+		end
+
+		local function FetchAndDisplay()
+			SetStatus("Fetching servers...")
+			ClearScroll()
+			_serverList = {}
+
+			task.spawn(function()
+				local placeId = tostring(game.PlaceId)
+				local cursor  = nil
+				local fetched = 0
+
+				for page = 1, _serverPages do
+					local url = "https://games.roblox.com/v1/games/"..placeId
+						.."/servers/Public?sortOrder=Asc&limit=10"
+					if cursor then url = url.."&cursor="..cursor end
+
+					local body = HttpGet(url)
+					if not body then
+						SetStatus("Failed to fetch (page "..page..")")
+						break
+					end
+
+					local ok, decoded = pcall(HttpService.JSONDecode, HttpService, body)
+					if not ok or not decoded then
+						SetStatus("Parse error")
+						break
+					end
+
+					for _, sv in ipairs(decoded.data or {}) do
+						table.insert(_serverList, sv)
+					end
+
+					cursor  = decoded.nextPageCursor
+					fetched = page
+					if not cursor then break end
+					task.wait(0.12)
+				end
+
+				if #_serverList == 0 then
+					SetStatus("No servers found.")
+					return
+				end
+
+				SetStatus(#_serverList.." servers found")
+				if svScroll then
+					for i, sv in ipairs(_serverList) do
+						BuildServerRow(svScroll, sv, i)
+					end
+				end
+			end)
+		end
+
+		svSec:ButtonRow({
+			Buttons = {
+				{ Icon="⊞", Name="Join Lowest Pop", Callback=function()
+					if #_serverList == 0 then
+						Window:Notify({ Title="Servers", Description="Fetch server list first." })
+						return
+					end
+					local lowest = _serverList[1]
+					for _, sv in ipairs(_serverList) do
+						if (sv.playing or 999) < (lowest.playing or 999) then
+							lowest = sv
+						end
+					end
+					JoinServer(lowest.id)
+				end },
+				{ Icon="↺", Name="Refresh", Callback=FetchAndDisplay },
+			}
+		})
+
+		task.spawn(function()
+			task.wait(0.15)
+			local sf = New("ScrollingFrame",{
+				BackgroundTransparency=1, BorderSizePixel=0,
+				Size=UDim2.new(1,-28,0,380),
+				CanvasSize=UDim2.new(0,0,0,0),
+				AutomaticCanvasSize=Enum.AutomaticSize.Y,
+				ScrollBarThickness=3,
+				ScrollBarImageColor3=T.Border,
+				LayoutOrder=20,
+				Parent=svSec,
+			})
+			MakeList(sf,6)
+			MakePad(sf,4,4,8,4)
+			svScroll = sf
+
+			local stLbl = New("TextLabel",{
+				BackgroundTransparency=1,BorderSizePixel=0,
+				AutomaticSize=Enum.AutomaticSize.Y,Size=UDim2.fromScale(1,0),
+				Text="Press Refresh to load servers.",
+				TextColor3=T.TextMuted,TextSize=12,
+				FontFace=FF(),TextXAlignment=Enum.TextXAlignment.Center,
+				LayoutOrder=99,Parent=sf,
+			})
+			svStatus = stLbl
+
+			FetchAndDisplay()
+		end)
+	end
 
 	local settingsTab = TG:Tab({
 		Name  = "Settings",
 		Image = "rbxassetid://9405931578",
 	})
-	settingsTab:InsertConfigSection("Left")
+	do
+		settingsTab:InsertConfigSection("Left")
+		local svCfgSec = settingsTab:Section({ Side="Right", Name="Server Settings" })
+		svCfgSec:Slider({
+			Name          = "Server Pages",
+			Minimum       = 1,
+			Maximum       = 20,
+			Default       = 5,
+			DisplayMethod = "Round",
+			Callback      = function(v)
+				_serverPages = v
+			end,
+		}, "Srv_Pages")
+	end
 
 	UILib:SetFolder("UILib")
-
 	Window.onUnloaded(function() print("UI Unloaded") end)
-
 	homeTab:Select()
 	UILib:LoadAutoLoadConfig()
 end

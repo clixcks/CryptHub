@@ -3326,12 +3326,11 @@ function UILib:Demo()
 			})
 			MakeList(dotRow,4,Enum.FillDirection.Horizontal,
 				Enum.HorizontalAlignment.Right,Enum.VerticalAlignment.Center)
-			New("Frame",{
+			local dotF = New("Frame",{
 				BackgroundColor3=dotColor, BorderSizePixel=0,
 				Size=UDim2.fromOffset(8,8), LayoutOrder=0, Parent=dotRow,
-			}):FindFirstChildWhichIsA("UICorner") or MakeCorner(dotRow:FindFirstChildWhichIsA("Frame"),T.Rfull)
-			local dotF = dotRow:FindFirstChildWhichIsA("Frame")
-			if dotF then MakeCorner(dotF,T.Rfull) end
+			})
+			MakeCorner(dotF, T.Rfull)
 			New("TextLabel",{
 				BackgroundTransparency=1,BorderSizePixel=0,
 				AutomaticSize=Enum.AutomaticSize.X,

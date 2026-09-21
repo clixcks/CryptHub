@@ -15,6 +15,14 @@ local Players         = UILib.GetService("Players")
 
 local isStudio    = RunService:IsStudio()
 local LocalPlayer = Players.LocalPlayer
+if not LocalPlayer then
+	pcall(function()
+		LocalPlayer = Players:GetPropertyChangedSignal("LocalPlayer"):Wait() or Players.LocalPlayer
+	end)
+	if not LocalPlayer then
+		pcall(function() LocalPlayer = Players.PlayerAdded:Wait() end)
+	end
+end
 local unloaded    = false
 
 local T = {
@@ -70,13 +78,19 @@ end
 
 local function New(class, props)
 	local ok, inst = pcall(Instance.new, class)
-	if not ok then return nil end
+	if not ok or not inst then return nil end
 	for k, v in pairs(props) do
 		if k ~= "Parent" then
-			pcall(function() inst[k] = v end)
+			if k == "FontFace" and typeof(v) == "EnumItem" then
+				pcall(function() inst.Font = v end)
+			else
+				pcall(function() inst[k] = v end)
+			end
 		end
 	end
-	if props.Parent then inst.Parent = props.Parent end
+	if props.Parent then
+		pcall(function() inst.Parent = props.Parent end)
+	end
 	return inst
 end
 
@@ -112,48 +126,48 @@ local function MakeList(p, pad, dir, ha, va)
 	})
 end
 
-local function Font(w)
-	return Font.new and Font.new("rbxasset://fonts/families/GothamSSm.json", w)
-		or Enum.Font.Gotham
-end
-
-local function MakeFont(weight)
-	local ok, f = pcall(function()
-		return Font_obj ~= nil and Font_obj
-		or (function()
-			local fn = (getfenv and getfenv(0) or _G).Font
-			if fn and fn.new then return fn.new("rbxasset://fonts/families/GothamSSm.json", weight) end
-		end)()
-	end)
-	if ok and f then return f end
-	return Enum.Font.Gotham
-end
-
-local _FontNew = (typeof(Font) == "table" and Font.new) or nil
+local _GlobalFont = (getgenv and getgenv().Font) or (getfenv and getfenv(0) or _G).Font
 local function FF(weight)
-	if _FontNew then
-		return _FontNew("rbxasset://fonts/families/GothamSSm.json",
-			weight or Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+	if typeof(_GlobalFont) == "table" and _GlobalFont.new then
+		local ok, f = pcall(function()
+			return _GlobalFont.new("rbxasset://fonts/families/GothamSSm.json",
+				weight or Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+		end)
+		if ok and f then return f end
 	end
 	return Enum.Font.GothamMedium
 end
 
 local function GetGui()
-	local gui        = Instance.new("ScreenGui")
-	gui.ScreenInsets = Enum.ScreenInsets.None
+	local gui = Instance.new("ScreenGui")
+	pcall(function() gui.ScreenInsets = Enum.ScreenInsets.None end)
 	gui.ResetOnSpawn = false
-	gui.ZIndexBehavior   = Enum.ZIndexBehavior.Sibling
-	gui.DisplayOrder     = 2147483647
-	gui.IgnoreGuiInset   = true
+	pcall(function() gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling end)
+	gui.DisplayOrder = 2147483647
+	gui.IgnoreGuiInset = true
 	local parent
-	if RunService:IsStudio() then
-		parent = LocalPlayer:FindFirstChild("PlayerGui")
-	else
-		parent = (gethui and gethui())
-			or (cloneref and cloneref(game:GetService("CoreGui")))
-			or game:GetService("CoreGui")
+	if not RunService:IsStudio() then
+		local ok, h = pcall(function() return gethui and gethui() end)
+		if ok and h then parent = h end
+		if not parent then
+			local ok2, cg = pcall(function() return cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui") end)
+			if ok2 and cg then
+				local canParent = pcall(function()
+					local t = Instance.new("Folder")
+					t.Parent = cg
+					t:Destroy()
+				end)
+				if canParent then parent = cg end
+			end
+		end
 	end
-	gui.Parent = parent
+	if not parent and LocalPlayer then
+		parent = LocalPlayer:FindFirstChild("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui", 5)
+	end
+	if not parent then
+		pcall(function() parent = game:GetService("CoreGui") end)
+	end
+	pcall(function() gui.Parent = parent end)
 	return gui
 end
 
@@ -173,7 +187,6 @@ function UILib:Window(Settings)
 	local BOT_H    = 56
 
 	local gui = GetGui()
-	gui.Enabled = false
 
 	local notifHolder = New("Frame", {
 		Name                = "Notifications",
@@ -310,11 +323,14 @@ function UILib:Window(Settings)
 		Parent           = userInner,
 	})
 	MakeCorner(avatarCircle, T.Rfull)
+	local lpName = LocalPlayer and LocalPlayer.Name or "User"
+	local lpDisplay = LocalPlayer and LocalPlayer.DisplayName or "User"
+
 	New("TextLabel", {
 		BackgroundTransparency = 1,
 		BorderSizePixel        = 0,
 		Size                   = UDim2.fromScale(1, 1),
-		Text                   = LocalPlayer.Name:sub(1, 1):upper(),
+		Text                   = lpName:sub(1, 1):upper(),
 		TextColor3             = T.TextPrimary,
 		TextSize               = 15,
 		FontFace               = FF(Enum.FontWeight.Bold),
@@ -333,14 +349,14 @@ function UILib:Window(Settings)
 	New("TextLabel", {
 		BackgroundTransparency = 1, BorderSizePixel = 0,
 		AutomaticSize = Enum.AutomaticSize.XY, Size = UDim2.new(0,0,0,0),
-		Text = LocalPlayer.DisplayName, TextColor3 = T.TextPrimary, TextSize = 13,
+		Text = lpDisplay, TextColor3 = T.TextPrimary, TextSize = 13,
 		FontFace = FF(Enum.FontWeight.SemiBold), TextXAlignment = Enum.TextXAlignment.Left,
 		LayoutOrder = 0, Parent = userText,
 	})
 	New("TextLabel", {
 		BackgroundTransparency = 1, BorderSizePixel = 0,
 		AutomaticSize = Enum.AutomaticSize.XY, Size = UDim2.new(0,0,0,0),
-		Text = "@" .. LocalPlayer.Name, TextColor3 = T.TextMuted, TextSize = 11,
+		Text = "@" .. lpName, TextColor3 = T.TextMuted, TextSize = 11,
 		FontFace = FF(), TextXAlignment = Enum.TextXAlignment.Left,
 		LayoutOrder = 1, Parent = userText,
 	})
@@ -485,7 +501,7 @@ function UILib:Window(Settings)
 	local globalSettingsOpen = false
 	local globalSettingsModal = nil
 	local _hideUsernameToggled = false
-	local _customUsername = LocalPlayer.DisplayName
+	local _customUsername = LocalPlayer and LocalPlayer.DisplayName or "User"
 
 	local function CloseGlobalSettings()
 		if globalSettingsModal then
@@ -602,7 +618,7 @@ function UILib:Window(Settings)
 		MakePad(nameBox,0,10,0,10)
 		nameBox.FocusLost:Connect(function()
 			local v=nameBox.Text:gsub("^%s+",""):gsub("%s+$","")
-			if v=="" then v=LocalPlayer.DisplayName end
+			if v=="" then v=LocalPlayer and LocalPlayer.DisplayName or "User" end
 			_customUsername=v
 			nameBox.Text=v
 			WindowFunctions:UpdateTitle(Settings.Title or "Title")
@@ -2944,7 +2960,7 @@ function UILib:Window(Settings)
 	end
 
 	local assetIds={}
-	ContentProvider:PreloadAsync(assetIds)
+	pcall(function() ContentProvider:PreloadAsync(assetIds) end)
 	gui.Enabled=true
 	win.Visible=true
 

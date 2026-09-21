@@ -1,7 +1,3 @@
--- UI.lua — Visual redesign, MacLib API-compatible
--- Layout: Sidebar | Content | BottomBar
--- All MacLib functions preserved.
-
 local UILib = {
 	Options = {},
 	Folder  = "UILib",
@@ -10,7 +6,6 @@ local UILib = {
 	end,
 }
 
--- ─── Services ────────────────────────────────────────────────────────────────
 local TweenService    = UILib.GetService("TweenService")
 local RunService      = UILib.GetService("RunService")
 local HttpService     = UILib.GetService("HttpService")
@@ -22,9 +17,8 @@ local isStudio    = RunService:IsStudio()
 local LocalPlayer = Players.LocalPlayer
 local unloaded    = false
 
--- ─── Theme ───────────────────────────────────────────────────────────────────
 local T = {
-	-- Backgrounds
+
 	Window      = Color3.fromRGB(18,  18,  20),
 	Sidebar     = Color3.fromRGB(22,  22,  25),
 	Content     = Color3.fromRGB(14,  14,  16),
@@ -35,27 +29,22 @@ local T = {
 	DropdownBg  = Color3.fromRGB(36,  36,  44),
 	PickerBg    = Color3.fromRGB(20,  20,  23),
 
-	-- Borders
 	Border      = Color3.fromRGB(55,  55,  62),
 	BorderLight = Color3.fromRGB(75,  75,  85),
 
-	-- Text
 	TextPrimary   = Color3.fromRGB(235, 235, 240),
 	TextSecondary = Color3.fromRGB(155, 155, 170),
 	TextMuted     = Color3.fromRGB(100, 100, 115),
 	TextAccent    = Color3.fromRGB(80,  195, 205),
 
-	-- Tab
 	TabActive = Color3.fromRGB(38, 38, 44),
 	TabHover  = Color3.fromRGB(30, 30, 36),
 
-	-- Controls
 	ToggleOff   = Color3.fromRGB(65,  65,  75),
 	ToggleOn    = Color3.fromRGB(100, 215, 115),
 	SliderTrack = Color3.fromRGB(45,  45,  55),
 	SliderHead  = Color3.fromRGB(225, 225, 235),
 
-	-- Status / special
 	Online   = Color3.fromRGB(50,  195, 75),
 	WarnBg   = Color3.fromRGB(48,  36,  8),
 	WarnBdr  = Color3.fromRGB(175, 120, 18),
@@ -63,21 +52,18 @@ local T = {
 	WarnBody = Color3.fromRGB(190, 145, 60),
 	WarnIcon = Color3.fromRGB(230, 155, 28),
 
-	-- Quick-tab colours (bottom bar, first 3 tabs)
 	Quick = {
 		Color3.fromRGB(125, 80,  215),
 		Color3.fromRGB(48,  185, 75),
 		Color3.fromRGB(215, 50,  55),
 	},
 
-	-- Radius shorthands
 	R    = UDim.new(0, 10),
 	Rsm  = UDim.new(0, 6),
 	Rlg  = UDim.new(0, 14),
 	Rfull= UDim.new(1, 0),
 }
 
--- ─── Utilities ───────────────────────────────────────────────────────────────
 local function Tween(inst, info, props)
 	return TweenService:Create(inst, info, props)
 end
@@ -126,11 +112,11 @@ local function MakeList(p, pad, dir, ha, va)
 	})
 end
 
-local function Font(w) -- helper: GothamSSm with optional weight
+local function Font(w)
 	return Font.new and Font.new("rbxasset://fonts/families/GothamSSm.json", w)
 		or Enum.Font.Gotham
 end
--- Use raw Font.new to avoid conflict:
+
 local function MakeFont(weight)
 	local ok, f = pcall(function()
 		return Font_obj ~= nil and Font_obj
@@ -143,7 +129,6 @@ local function MakeFont(weight)
 	return Enum.Font.Gotham
 end
 
--- Safe font factory
 local _FontNew = (typeof(Font) == "table" and Font.new) or nil
 local function FF(weight)
 	if _FontNew then
@@ -172,12 +157,10 @@ local function GetGui()
 	return gui
 end
 
--- ─── Window ──────────────────────────────────────────────────────────────────
 function UILib:Window(Settings)
 	local WindowFunctions = { Settings = Settings }
 
-	-- bookkeeping
-	local tabRegistry   = {}   -- [tabBtn] = { content, name, nameLabel, iconLabel, leftCol, rightCol, fullCol }
+	local tabRegistry   = {}
 	local quickTabCount = 0
 	local currentTabBtn = nil
 	local windowVisible = true
@@ -189,11 +172,9 @@ function UILib:Window(Settings)
 	local SIDE_W   = 240
 	local BOT_H    = 56
 
-	-- ── ScreenGui ─────────────────────────────────────────────────────
 	local gui = GetGui()
 	gui.Enabled = false
 
-	-- Notifications overlay (sits above everything)
 	local notifHolder = New("Frame", {
 		Name                = "Notifications",
 		BackgroundTransparency = 1,
@@ -206,29 +187,29 @@ function UILib:Window(Settings)
 		Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Bottom)
 	MakePad(notifHolder, 0, 12, 12, 0)
 
-	-- ── Main window ────────────────────────────────────────────────────
 	local win = New("Frame", {
-		Name               = "Window",
-		AnchorPoint        = Vector2.new(0.5, 0.5),
-		BackgroundColor3   = T.Window,
-		BorderSizePixel    = 0,
-		Position           = UDim2.fromScale(0.5, 0.5),
-		Size               = UDim2.fromOffset(WIN_W, WIN_H),
-		ClipsDescendants   = true,
-		Parent             = gui,
+		Name                   = "Window",
+		AnchorPoint            = Vector2.new(0.5, 0.5),
+		BackgroundColor3       = T.Window,
+		BackgroundTransparency = 0.12,
+		BorderSizePixel        = 0,
+		Position               = UDim2.fromScale(0.5, 0.5),
+		Size                   = UDim2.fromOffset(WIN_W, WIN_H),
+		ClipsDescendants       = true,
+		Parent                 = gui,
 	})
-	MakeCorner(win, T.Rlg)
+	MakeCorner(win, UDim.new(0, 16))
 
-	-- ── Sidebar ────────────────────────────────────────────────────────
 	local sidebar = New("Frame", {
-		Name             = "Sidebar",
-		BackgroundColor3 = T.Sidebar,
-		BorderSizePixel  = 0,
-		Size             = UDim2.new(0, SIDE_W, 1, -BOT_H),
-		ClipsDescendants = true,
-		Parent           = win,
+		Name                   = "Sidebar",
+		BackgroundColor3       = T.Sidebar,
+		BackgroundTransparency = 0.32,
+		BorderSizePixel        = 0,
+		Size                   = UDim2.new(0, SIDE_W, 1, -BOT_H),
+		ClipsDescendants       = true,
+		Parent                 = win,
 	})
-	-- right border line
+
 	New("Frame", {
 		Name             = "SBorder",
 		AnchorPoint      = Vector2.new(1, 0),
@@ -239,7 +220,6 @@ function UILib:Window(Settings)
 		Parent           = sidebar,
 	})
 
-	-- Sidebar header
 	local sbHead = New("Frame", {
 		Name                   = "SBHead",
 		BackgroundTransparency = 1,
@@ -278,7 +258,6 @@ function UILib:Window(Settings)
 		Parent                 = sbHead,
 	})
 
-	-- Tab navigation scroll frame
 	local tabNav = New("ScrollingFrame", {
 		Name                   = "TabNav",
 		BackgroundTransparency = 1,
@@ -297,7 +276,6 @@ function UILib:Window(Settings)
 	MakePad(tabNav, 6, 8, 6, 8)
 	MakeList(tabNav, 3)
 
-	-- User info (bottom of sidebar)
 	local userFrame = New("Frame", {
 		Name                   = "UserFrame",
 		AnchorPoint            = Vector2.new(0, 1),
@@ -307,7 +285,7 @@ function UILib:Window(Settings)
 		Size                   = UDim2.new(1, 0, 0, 72),
 		Parent                 = sidebar,
 	})
-	New("Frame", { -- top separator
+	New("Frame", {
 		BackgroundColor3 = T.Border,
 		BorderSizePixel  = 0,
 		Size             = UDim2.new(1, 0, 0, 1),
@@ -324,7 +302,6 @@ function UILib:Window(Settings)
 	MakeList(userInner, 10, Enum.FillDirection.Horizontal,
 		Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center)
 
-	-- Avatar circle
 	local avatarCircle = New("Frame", {
 		BackgroundColor3 = T.TabActive,
 		BorderSizePixel  = 0,
@@ -368,15 +345,15 @@ function UILib:Window(Settings)
 		LayoutOrder = 1, Parent = userText,
 	})
 
-	-- ── Content area ───────────────────────────────────────────────────
 	local contentArea = New("Frame", {
-		Name             = "Content",
-		AnchorPoint      = Vector2.new(1, 0),
-		BackgroundColor3 = T.Content,
-		BorderSizePixel  = 0,
-		Position         = UDim2.new(1, 0, 0, 0),
-		Size             = UDim2.new(1, -SIDE_W, 1, -BOT_H),
-		Parent           = win,
+		Name                   = "Content",
+		AnchorPoint            = Vector2.new(1, 0),
+		BackgroundColor3       = T.Content,
+		BackgroundTransparency = 0.22,
+		BorderSizePixel        = 0,
+		Position               = UDim2.new(1, 0, 0, 0),
+		Size                   = UDim2.new(1, -SIDE_W, 1, -BOT_H),
+		Parent                 = win,
 	})
 
 	local contentHead = New("Frame", {
@@ -404,14 +381,12 @@ function UILib:Window(Settings)
 		LayoutOrder = 1, Parent = contentHead,
 	})
 
-	-- Draggable handle over the content header
 	local dragHandle = New("TextButton", {
 		BackgroundTransparency = 1, BorderSizePixel = 0,
 		Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 0,
 		Parent = contentHead,
 	})
 
-	-- Content body (tab frames go here)
 	local contentBody = New("Frame", {
 		Name                   = "ContentBody",
 		BackgroundTransparency = 1,
@@ -422,17 +397,17 @@ function UILib:Window(Settings)
 		Parent                 = contentArea,
 	})
 
-	-- ── Bottom bar ─────────────────────────────────────────────────────
 	local botBar = New("Frame", {
-		Name             = "BottomBar",
-		AnchorPoint      = Vector2.new(0, 1),
-		BackgroundColor3 = T.BottomBar,
-		BorderSizePixel  = 0,
-		Position         = UDim2.fromScale(0, 1),
-		Size             = UDim2.new(1, 0, 0, BOT_H),
-		Parent           = win,
+		Name                   = "BottomBar",
+		AnchorPoint            = Vector2.new(0, 1),
+		BackgroundColor3       = T.BottomBar,
+		BackgroundTransparency = 0.30,
+		BorderSizePixel        = 0,
+		Position               = UDim2.fromScale(0, 1),
+		Size                   = UDim2.new(1, 0, 0, BOT_H),
+		Parent                 = win,
 	})
-	New("Frame", { -- top border
+	New("Frame", {
 		BackgroundColor3 = T.Border, BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 1), Parent = botBar,
 	})
@@ -475,9 +450,17 @@ function UILib:Window(Settings)
 	end
 	local settingsCtrl = MakeCtrlBtn("⚙", T.TabActive, T.TextSecondary, 0)
 	local minimizeCtrl = MakeCtrlBtn("—", T.TabActive, T.TextSecondary, 1)
-	local closeCtrl    = MakeCtrlBtn("✕", Color3.fromRGB(200,50,55), Color3.fromRGB(255,255,255), 2)
+	local closeCtrl    = MakeCtrlBtn("",  Color3.fromRGB(200,50,55), Color3.fromRGB(255,255,255), 2)
+	New("ImageLabel", {
+		BackgroundTransparency = 1, BorderSizePixel = 0,
+		AnchorPoint = Vector2.new(0.5,0.5),
+		Position    = UDim2.fromScale(0.5,0.5),
+		Size        = UDim2.fromOffset(14,14),
+		Image       = "rbxassetid://10152135063",
+		ImageColor3 = Color3.fromRGB(255,255,255),
+		Parent      = closeCtrl,
+	})
 
-	-- ── Dragging ───────────────────────────────────────────────────────
 	do
 		local dragging, dragStart, startPos = false, nil, nil
 		dragHandle.InputBegan:Connect(function(inp)
@@ -503,7 +486,6 @@ function UILib:Window(Settings)
 		end)
 	end
 
-	-- ── Tab selection ──────────────────────────────────────────────────
 	local function SelectTab(tabBtn)
 		if not tabRegistry[tabBtn] then return end
 
@@ -540,7 +522,6 @@ function UILib:Window(Settings)
 		end
 	end
 
-	-- ── Window controls ────────────────────────────────────────────────
 	local function ToggleMenu()
 		windowVisible = not windowVisible
 		win.Visible   = windowVisible
@@ -568,9 +549,6 @@ function UILib:Window(Settings)
 		})
 	end)
 
-	-- ══════════════════════════════════════════════════════════════════
-	-- GlobalSetting (API compat — callback-only, no popup panel)
-	-- ══════════════════════════════════════════════════════════════════
 	function WindowFunctions:GlobalSetting(Cfg)
 		local GSF = { Settings = Cfg }
 		local state = Cfg.Default
@@ -584,9 +562,6 @@ function UILib:Window(Settings)
 		return GSF
 	end
 
-	-- ══════════════════════════════════════════════════════════════════
-	-- TabGroup → Tab → Section → Elements
-	-- ══════════════════════════════════════════════════════════════════
 	function WindowFunctions:TabGroup()
 		local TGF  = {}
 		local tgOrder = 0
@@ -596,7 +571,6 @@ function UILib:Window(Settings)
 			tgOrder = tgOrder + 1
 			local myOrder = tgOrder
 
-			-- ── Sidebar button ─────────────────────────────────────────
 			local tabBtn = New("TextButton", {
 				Name                   = "Tab_" .. (Cfg.Name or myOrder),
 				BackgroundColor3       = T.TabActive,
@@ -613,7 +587,6 @@ function UILib:Window(Settings)
 			MakeList(tabBtn, 10, Enum.FillDirection.Horizontal,
 				Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center)
 
-			-- icon
 			local iconLabel
 			if Cfg.Image then
 				iconLabel = New("ImageLabel", {
@@ -654,7 +627,6 @@ function UILib:Window(Settings)
 				Parent                 = tabBtn,
 			})
 
-			-- ── Content frame ──────────────────────────────────────────
 			local contentSF = New("ScrollingFrame", {
 				Name                   = "Content_" .. (Cfg.Name or myOrder),
 				BackgroundTransparency = 1,
@@ -669,7 +641,6 @@ function UILib:Window(Settings)
 			MakePad(contentSF, 16, 20, 20, 20)
 			MakeList(contentSF, 14)
 
-			-- two-col row
 			local twoColRow = New("Frame", {
 				Name                   = "TwoCol",
 				BackgroundTransparency = 1, BorderSizePixel = 0,
@@ -695,7 +666,6 @@ function UILib:Window(Settings)
 			})
 			MakeList(rightCol, 12)
 
-			-- full-width area (below the two columns)
 			local fullCol = New("Frame", {
 				Name = "FullCol",
 				BackgroundTransparency = 1, BorderSizePixel = 0,
@@ -705,7 +675,6 @@ function UILib:Window(Settings)
 			})
 			MakeList(fullCol, 12)
 
-			-- ── Quick-tab bottom bar button (first 3 tabs) ─────────────
 			quickTabCount = quickTabCount + 1
 			if quickTabCount <= 3 then
 				local qc = T.Quick[quickTabCount] or T.TabActive
@@ -719,13 +688,14 @@ function UILib:Window(Settings)
 					Parent           = quickTabsF,
 				})
 				MakeCorner(qb, T.Rfull)
-				if Cfg.Image then
+				local quickImg = Cfg.QuickImage or Cfg.Image
+				if quickImg then
 					New("ImageLabel", {
 						BackgroundTransparency = 1, BorderSizePixel = 0,
 						AnchorPoint = Vector2.new(0.5,0.5),
 						Position    = UDim2.fromScale(0.5, 0.5),
 						Size        = UDim2.fromOffset(18, 18),
-						Image       = Cfg.Image,
+						Image       = quickImg,
 						ImageColor3 = Color3.fromRGB(255,255,255),
 						Parent      = qb,
 					})
@@ -742,7 +712,6 @@ function UILib:Window(Settings)
 				qb.MouseButton1Click:Connect(function() SelectTab(tabBtn) end)
 			end
 
-			-- sidebar tab click + hover
 			tabBtn.MouseButton1Click:Connect(function() SelectTab(tabBtn) end)
 			tabBtn.MouseEnter:Connect(function()
 				if currentTabBtn ~= tabBtn then
@@ -757,7 +726,6 @@ function UILib:Window(Settings)
 				end
 			end)
 
-			-- register
 			tabRegistry[tabBtn] = {
 				content   = contentSF,
 				name      = Cfg.Name or "Tab",
@@ -768,7 +736,6 @@ function UILib:Window(Settings)
 				fullCol   = fullCol,
 			}
 
-			-- ── Section ────────────────────────────────────────────────
 			function TabFunctions:Section(sCfg)
 				sCfg = sCfg or {}
 				local SF = {}
@@ -778,18 +745,18 @@ function UILib:Window(Settings)
 					or leftCol
 
 				local card = New("Frame", {
-					Name             = "Card",
-					BackgroundColor3 = T.Card,
-					BorderSizePixel  = 0,
-					Size             = UDim2.new(1, 0, 0, 0),
-					AutomaticSize    = Enum.AutomaticSize.Y,
-					ClipsDescendants = false,
-					Parent           = parentCol,
+					Name                   = "Card",
+					BackgroundColor3       = T.Card,
+					BackgroundTransparency = 0.35,
+					BorderSizePixel        = 0,
+					Size                   = UDim2.new(1, 0, 0, 0),
+					AutomaticSize          = Enum.AutomaticSize.Y,
+					ClipsDescendants       = false,
+					Parent                 = parentCol,
 				})
 				MakeCorner(card, T.R)
-				MakeStroke(card, T.Border, 0.8)
+				MakeStroke(card, T.Border, 0.72)
 
-				-- optional titled header strip
 				local headerH = 0
 				if sCfg.Name and sCfg.Name ~= "" then
 					headerH = 36
@@ -833,7 +800,6 @@ function UILib:Window(Settings)
 
 				local elemOrder = 0
 
-				-- separator helper (between elements)
 				local function Sep(parent)
 					if elemOrder > 0 then
 						New("Frame", {
@@ -860,7 +826,6 @@ function UILib:Window(Settings)
 					return r
 				end
 
-				-- ── BUTTON ─────────────────────────────────────────────
 				function SF:Button(Cfg, Flag)
 					local BF = { Settings = Cfg }
 					Sep()
@@ -900,7 +865,6 @@ function UILib:Window(Settings)
 					return BF
 				end
 
-				-- ── TOGGLE ─────────────────────────────────────────────
 				function SF:Toggle(Cfg, Flag)
 					local toggled = Cfg.Default or false
 					local TF = { Settings = Cfg, State = toggled, Class = "Toggle", IgnoreConfig = false }
@@ -955,7 +919,6 @@ function UILib:Window(Settings)
 					return TF
 				end
 
-				-- ── SLIDER ─────────────────────────────────────────────
 				function SF:Slider(Cfg, Flag)
 					local mn = Cfg.Minimum or 0
 					local mx = Cfg.Maximum or 100
@@ -973,7 +936,6 @@ function UILib:Window(Settings)
 					MakePad(outer, 8, 0, 8, 0)
 					MakeList(outer, 6)
 
-					-- label row
 					local lblRow = New("Frame", {
 						BackgroundTransparency=1, BorderSizePixel=0,
 						Size=UDim2.new(1,0,0,18), AutomaticSize=Enum.AutomaticSize.Y,
@@ -988,7 +950,6 @@ function UILib:Window(Settings)
 						Parent=lblRow,
 					})
 
-					-- track
 					local trackF = New("Frame", {
 						BackgroundTransparency=1, BorderSizePixel=0,
 						Size=UDim2.new(1,0,0,22), LayoutOrder=1, Parent=outer,
@@ -1016,7 +977,6 @@ function UILib:Window(Settings)
 					MakeCorner(thumb, T.Rfull)
 					MakeStroke(thumb, T.Border, 0.6)
 
-					-- range labels
 					local rangeRow = New("Frame", {
 						BackgroundTransparency=1, BorderSizePixel=0,
 						Size=UDim2.new(1,0,0,14), LayoutOrder=2, Parent=outer,
@@ -1036,7 +996,6 @@ function UILib:Window(Settings)
 						TextXAlignment=Enum.TextXAlignment.Right, Parent=rangeRow,
 					})
 
-					-- Display methods
 					local DM = {
 						Round   = function(v,p) return p and string.format("%."..p.."f",v) or tostring(math.round(v)) end,
 						Degrees = function(v,p) return (p and string.format("%."..p.."f",v) or tostring(v)).."°" end,
@@ -1096,7 +1055,6 @@ function UILib:Window(Settings)
 					return SlF
 				end
 
-				-- ── INPUT ──────────────────────────────────────────────
 				function SF:Input(Cfg, Flag)
 					local IF = { Settings = Cfg, Text = Cfg.Default or "", Class = "Input", IgnoreConfig = false }
 					Sep()
@@ -1164,7 +1122,6 @@ function UILib:Window(Settings)
 					return IF
 				end
 
-				-- ── KEYBIND ────────────────────────────────────────────
 				function SF:Keybind(Cfg, Flag)
 					local KF = { Settings=Cfg, Class="Keybind", IgnoreConfig=false }
 					local binded = Cfg.Default
@@ -1241,7 +1198,6 @@ function UILib:Window(Settings)
 					return KF
 				end
 
-				-- ── DROPDOWN ───────────────────────────────────────────
 				function SF:Dropdown(Cfg, Flag)
 					local DF = { Settings=Cfg, Class="Dropdown", IgnoreConfig=false, Value=nil }
 					local Selected  = {}
@@ -1276,7 +1232,6 @@ function UILib:Window(Settings)
 						FontFace=FF(), TextXAlignment=Enum.TextXAlignment.Left, Parent=hdr,
 					})
 
-					-- pill display
 					local pill = New("Frame", {
 						AnchorPoint=Vector2.new(1,0.5),
 						BackgroundColor3=T.DropdownBg, BorderSizePixel=0,
@@ -1305,7 +1260,6 @@ function UILib:Window(Settings)
 						LayoutOrder=1, Parent=pill,
 					})
 
-					-- options frame
 					local optFrame = New("Frame", {
 						BackgroundTransparency=1, BorderSizePixel=0,
 						Position=UDim2.fromOffset(0,CLOSED_H),
@@ -1316,7 +1270,6 @@ function UILib:Window(Settings)
 					MakePad(optFrame,4,0,6,0)
 					MakeList(optFrame,2)
 
-					-- search box
 					local searchBox
 					if Cfg.Search then
 						searchBox = New("TextBox", {
@@ -1393,7 +1346,6 @@ function UILib:Window(Settings)
 						})
 						OptObjs[name]={btn=ob,check=ck,index=idx}
 
-						-- default
 						local sel=false
 						if Cfg.Default then
 							if type(Cfg.Default)=="table" then
@@ -1432,7 +1384,6 @@ function UILib:Window(Settings)
 					end
 					UpdatePill()
 
-					-- search filter
 					if searchBox then
 						searchBox:GetPropertyChangedSignal("Text"):Connect(function()
 							local q=searchBox.Text:lower()
@@ -1442,7 +1393,6 @@ function UILib:Window(Settings)
 						end)
 					end
 
-					-- open/close
 					local debounce=false
 					hdrBtn.MouseButton1Click:Connect(function()
 						if debounce then return end
@@ -1516,7 +1466,6 @@ function UILib:Window(Settings)
 					return DF
 				end
 
-				-- ── COLORPICKER ────────────────────────────────────────
 				function SF:Colorpicker(Cfg, Flag)
 					local CPF = {Settings=Cfg, Class="Colorpicker", IgnoreConfig=false}
 					CPF.Color = Cfg.Default or Color3.fromRGB(255,255,255)
@@ -1570,7 +1519,6 @@ function UILib:Window(Settings)
 					end
 					RefreshDot(CPF.Color, CPF.Alpha)
 
-					-- Full colorpicker modal (HSV square + hue bar + inputs)
 					local pickerOpen=false
 					local pickerModal
 
@@ -1583,7 +1531,6 @@ function UILib:Window(Settings)
 						if pickerOpen then return end
 						pickerOpen=true
 
-						-- Modal overlay
 						local canvas = New("CanvasGroup", {
 							BackgroundColor3=Color3.fromRGB(0,0,0),
 							BackgroundTransparency=0.55,
@@ -1625,7 +1572,6 @@ function UILib:Window(Settings)
 						end
 						AnimIn()
 
-						-- SV square (saturation × value)
 						local svOuter = New("Frame", {
 							BackgroundColor3=Color3.fromHSV(hue,1,1),
 							BorderSizePixel=0,
@@ -1633,7 +1579,7 @@ function UILib:Window(Settings)
 							LayoutOrder=0, Parent=pbox,
 						})
 						MakeCorner(svOuter,T.Rsm)
-						-- white→color horizontal
+
 						local svGradH = New("UIGradient", {
 							Color=ColorSequence.new({
 								ColorSequenceKeypoint.new(0,Color3.fromRGB(255,255,255)),
@@ -1641,7 +1587,7 @@ function UILib:Window(Settings)
 							}),
 							Rotation=0, Parent=svOuter,
 						})
-						-- transparent→black vertical overlay
+
 						local svOver = New("Frame", {
 							BackgroundColor3=Color3.fromRGB(0,0,0),
 							BackgroundTransparency=0.001,
@@ -1657,7 +1603,7 @@ function UILib:Window(Settings)
 							}),
 							Rotation=90, Parent=svOver,
 						})
-						-- crosshair
+
 						local cross = New("Frame", {
 							AnchorPoint=Vector2.new(0.5,0.5),
 							BackgroundColor3=Color3.fromRGB(255,255,255),
@@ -1669,7 +1615,6 @@ function UILib:Window(Settings)
 						MakeCorner(cross,T.Rfull)
 						MakeStroke(cross,T.Border,0.3,2)
 
-						-- Hue bar
 						local hueBar = New("Frame", {
 							BackgroundColor3=Color3.fromRGB(255,0,0),
 							BorderSizePixel=0,
@@ -1700,7 +1645,6 @@ function UILib:Window(Settings)
 						MakeCorner(hueThumb,T.Rfull)
 						MakeStroke(hueThumb,T.Border,0.3,2)
 
-						-- Alpha bar (only if Cfg.Alpha provided)
 						local alphaBar, alphaThumb
 						local isAlpha = (Cfg.Alpha ~= nil)
 						if isAlpha then
@@ -1730,7 +1674,6 @@ function UILib:Window(Settings)
 							MakeStroke(alphaThumb,T.Border,0.3,2)
 						end
 
-						-- RGB / Hex inputs
 						local inputRow = New("Frame", {
 							BackgroundTransparency=1, BorderSizePixel=0,
 							Size=UDim2.new(1,0,0,30),
@@ -1758,7 +1701,6 @@ function UILib:Window(Settings)
 						local bIn=MakeInput("B",42,2)
 						local hexIn=MakeInput("#HEX",80,3)
 
-						-- preview swatches
 						local swatchRow = New("Frame", {
 							BackgroundTransparency=1, BorderSizePixel=0,
 							Size=UDim2.new(1,0,0,28),
@@ -1781,7 +1723,6 @@ function UILib:Window(Settings)
 						})
 						MakeCorner(oldSwatch,T.Rsm)
 
-						-- Confirm / Cancel buttons
 						local btnRow = New("Frame", {
 							BackgroundTransparency=1, BorderSizePixel=0,
 							Size=UDim2.new(1,0,0,32),
@@ -1806,7 +1747,6 @@ function UILib:Window(Settings)
 						})
 						MakeCorner(confirmBtn,T.Rsm)
 
-						-- update helpers
 						local workColor = CPF.Color
 						local workAlpha = CPF.Alpha
 
@@ -1835,7 +1775,6 @@ function UILib:Window(Settings)
 						end
 						UpdateSV()
 
-						-- SV interaction
 						local svDrag=false
 						svOuter.InputBegan:Connect(function(inp)
 							if inp.UserInputType==Enum.UserInputType.MouseButton1 then
@@ -1856,7 +1795,6 @@ function UILib:Window(Settings)
 							end
 						end)
 
-						-- Hue bar interaction
 						local hueDrag=false
 						hueBar.InputBegan:Connect(function(inp)
 							if inp.UserInputType==Enum.UserInputType.MouseButton1 then
@@ -1875,7 +1813,6 @@ function UILib:Window(Settings)
 							end
 						end)
 
-						-- Alpha bar interaction
 						if isAlpha and alphaBar then
 							local aDrag=false
 							alphaBar.InputBegan:Connect(function(inp)
@@ -1898,7 +1835,6 @@ function UILib:Window(Settings)
 							end)
 						end
 
-						-- RGB input handlers
 						local function ParseRGB()
 							local r=tonumber(rIn.Text) or 0
 							local g=tonumber(gIn.Text) or 0
@@ -1928,7 +1864,6 @@ function UILib:Window(Settings)
 						bIn.FocusLost:Connect(ParseRGB)
 						hexIn.FocusLost:Connect(ParseHex)
 
-						-- Confirm / Cancel
 						cancelBtn.MouseButton1Click:Connect(function() AnimOut() end)
 						confirmBtn.MouseButton1Click:Connect(function()
 							AnimOut(function()
@@ -1958,7 +1893,6 @@ function UILib:Window(Settings)
 					return CPF
 				end
 
-				-- ── HEADER ─────────────────────────────────────────────
 				function SF:Header(Cfg, Flag)
 					local HF={Settings=Cfg}
 					local hf=New("Frame",{
@@ -1983,7 +1917,6 @@ function UILib:Window(Settings)
 					return HF
 				end
 
-				-- ── LABEL ──────────────────────────────────────────────
 				function SF:Label(Cfg, Flag)
 					local LF={Settings=Cfg}
 					if Cfg.Value~=nil then
@@ -1997,24 +1930,26 @@ function UILib:Window(Settings)
 							TextColor3=T.TextSecondary, TextSize=13,
 							FontFace=FF(), TextXAlignment=Enum.TextXAlignment.Left, Parent=row,
 						})
+						local valLbl
+						local badgeFrame
 						if Cfg.ValueStyle=="badge" then
-							local badge=New("Frame",{
+							badgeFrame=New("Frame",{
 								AnchorPoint=Vector2.new(1,0.5),
 								BackgroundColor3=Cfg.BadgeColor or T.Online,
 								BorderSizePixel=0,
 								Position=UDim2.fromScale(1,0.5),
 								Size=UDim2.fromOffset(60,22), Parent=row,
 							})
-							MakeCorner(badge,T.Rfull)
-							New("TextLabel",{
+							MakeCorner(badgeFrame,T.Rfull)
+							valLbl=New("TextLabel",{
 								BackgroundTransparency=1, BorderSizePixel=0,
 								Size=UDim2.fromScale(1,1),
 								Text=tostring(Cfg.Value),
 								TextColor3=Color3.fromRGB(255,255,255), TextSize=12,
-								FontFace=FF(Enum.FontWeight.Medium), Parent=badge,
+								FontFace=FF(Enum.FontWeight.Medium), Parent=badgeFrame,
 							})
 						else
-							New("TextLabel",{
+							valLbl=New("TextLabel",{
 								BackgroundTransparency=1, BorderSizePixel=0,
 								AnchorPoint=Vector2.new(1,0.5), Position=UDim2.fromScale(1,0.5),
 								AutomaticSize=Enum.AutomaticSize.Y, Size=UDim2.new(0.45,0,0,0),
@@ -2024,6 +1959,12 @@ function UILib:Window(Settings)
 							})
 						end
 						function LF:UpdateName(n) end
+						function LF:UpdateValue(v)
+							if valLbl and valLbl.Parent then valLbl.Text=tostring(v) end
+						end
+						function LF:SetBadgeColor(c)
+							if badgeFrame and badgeFrame.Parent then badgeFrame.BackgroundColor3=c end
+						end
 						function LF:SetVisibility(s) row.Visible=s end
 					else
 						local lf=New("Frame",{
@@ -2042,13 +1983,13 @@ function UILib:Window(Settings)
 							TextWrapped=true, RichText=true, Parent=lf,
 						})
 						function LF:UpdateName(n) ll.Text=n end
+						function LF:UpdateValue(_)  end
 						function LF:SetVisibility(s) lf.Visible=s end
 					end
 					if Flag then UILib.Options[Flag]=LF end
 					return LF
 				end
 
-				-- ── SUBLABEL ───────────────────────────────────────────
 				function SF:SubLabel(Cfg, Flag)
 					local SLF={Settings=Cfg}
 					local slf=New("Frame",{
@@ -2072,7 +2013,6 @@ function UILib:Window(Settings)
 					return SLF
 				end
 
-				-- ── PARAGRAPH ──────────────────────────────────────────
 				function SF:Paragraph(Cfg, Flag)
 					local PF={Settings=Cfg}
 					Sep()
@@ -2106,7 +2046,6 @@ function UILib:Window(Settings)
 					return PF
 				end
 
-				-- ── DIVIDER ────────────────────────────────────────────
 				function SF:Divider()
 					local DF2={}
 					local div=New("Frame",{
@@ -2127,7 +2066,6 @@ function UILib:Window(Settings)
 					return DF2
 				end
 
-				-- ── SPACER ─────────────────────────────────────────────
 				function SF:Spacer()
 					local SPF={}
 					local sp=New("Frame",{
@@ -2141,7 +2079,6 @@ function UILib:Window(Settings)
 					return SPF
 				end
 
-				-- ── WARNING (new element) ──────────────────────────────
 				function SF:Warning(Cfg)
 					local WF={}
 					local wc=New("Frame",{
@@ -2187,7 +2124,6 @@ function UILib:Window(Settings)
 					return WF
 				end
 
-				-- ── SUB-TAB GROUP (WARNINGS/CREDITS style) ─────────────
 				function SF:SubTabGroup()
 					local STGF={}
 					local subTabs={}
@@ -2202,7 +2138,6 @@ function UILib:Window(Settings)
 					elemOrder=elemOrder+1
 					MakeList(stg,10)
 
-					-- tab bar
 					local stBar=New("Frame",{
 						BackgroundTransparency=1, BorderSizePixel=0,
 						Size=UDim2.new(1,0,0,32), LayoutOrder=0, Parent=stg,
@@ -2210,7 +2145,6 @@ function UILib:Window(Settings)
 					MakeList(stBar,0,Enum.FillDirection.Horizontal,
 						Enum.HorizontalAlignment.Left,Enum.VerticalAlignment.Center)
 
-					-- content host
 					local stHost=New("Frame",{
 						BackgroundTransparency=1, BorderSizePixel=0,
 						Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
@@ -2266,7 +2200,6 @@ function UILib:Window(Settings)
 						sBtn.MouseButton1Click:Connect(function() SelectST(sBtn) end)
 						if not activeST then SelectST(sBtn) end
 
-						-- sub-tab element helpers
 						local sElemOrder=0
 						function STF:Warning(wCfg)
 							local wc=New("Frame",{
@@ -2310,7 +2243,7 @@ function UILib:Window(Settings)
 						end
 						function STF:Label(lCfg)
 							if lCfg.Value~=nil then
-								-- separator
+
 								if sElemOrder>0 then
 									New("Frame",{
 										BackgroundColor3=T.Border, BackgroundTransparency=0.7,
@@ -2366,9 +2299,8 @@ function UILib:Window(Settings)
 				end
 
 				return SF
-			end -- Section
+			end
 
-			-- InsertConfigSection
 			function TabFunctions:InsertConfigSection(side)
 				local cs = TabFunctions:Section({ Side = side or "Left", Name = "Config" })
 				if isStudio then
@@ -2426,14 +2358,11 @@ function UILib:Window(Settings)
 			end
 
 			return TabFunctions
-		end -- Tab
+		end
 
 		return TGF
-	end -- TabGroup
+	end
 
-	-- ══════════════════════════════════════════════════════════════════
-	-- Notifications
-	-- ══════════════════════════════════════════════════════════════════
 	function WindowFunctions:Notify(Cfg)
 		local NF = {}
 		local notif = New("Frame", {
@@ -2523,9 +2452,6 @@ function UILib:Window(Settings)
 		return NF
 	end
 
-	-- ══════════════════════════════════════════════════════════════════
-	-- Dialog
-	-- ══════════════════════════════════════════════════════════════════
 	function WindowFunctions:Dialog(Cfg)
 		local DlgF = {}
 		local canvas = New("CanvasGroup", {
@@ -2612,9 +2538,6 @@ function UILib:Window(Settings)
 		return DlgF
 	end
 
-	-- ══════════════════════════════════════════════════════════════════
-	-- Window state API
-	-- ══════════════════════════════════════════════════════════════════
 	function WindowFunctions:SetState(s)      windowVisible=s; win.Visible=s end
 	function WindowFunctions:GetState()       return windowVisible end
 	function WindowFunctions:SetNotificationsState(s) notifHolder.Visible=s end
@@ -2638,7 +2561,7 @@ function UILib:Window(Settings)
 		return us and us.Scale or 1
 	end
 	function WindowFunctions:SetKeybind(k)        MenuKeybind=k end
-	function WindowFunctions:SetAcrylicBlurState(_) end   -- not used in this design
+	function WindowFunctions:SetAcrylicBlurState(_) end
 	function WindowFunctions:GetAcrylicBlurState()  return false end
 	function WindowFunctions:Unload()
 		if onUnloadCB then onUnloadCB() end
@@ -2646,9 +2569,6 @@ function UILib:Window(Settings)
 	end
 	function WindowFunctions.onUnloaded(cb) onUnloadCB=cb end
 
-	-- ══════════════════════════════════════════════════════════════════
-	-- Config system  (identical logic to MacLib)
-	-- ══════════════════════════════════════════════════════════════════
 	local ClassParser = {
 		Toggle = {
 			Save = function(f,d) return {type="Toggle",flag=f,state=d.State or false} end,
@@ -2782,23 +2702,18 @@ function UILib:Window(Settings)
 		return out
 	end
 
-	-- ── Finalize ───────────────────────────────────────────────────────
 	local assetIds={}
 	ContentProvider:PreloadAsync(assetIds)
 	gui.Enabled=true
 	win.Visible=true
 
-	-- Show user info according to setting
 	local showInfo = Settings.ShowUserInfo
 	if showInfo==nil then showInfo=true end
 	WindowFunctions:SetUserInfoState(showInfo)
 
 	return WindowFunctions
-end -- Window
+end
 
--- ════════════════════════════════════════════════════════════════════════
--- Demo  (recreates the 4 reference screenshots)
--- ════════════════════════════════════════════════════════════════════════
 function UILib:Demo()
 	local Window = UILib:Window({
 		Title        = "Title",
@@ -2808,32 +2723,60 @@ function UILib:Demo()
 		ShowUserInfo = true,
 	})
 
-	-- global settings (API compat)
 	Window:GlobalSetting({ Name="UI Blur",      Default=false, Callback=function(v) Window:SetAcrylicBlurState(v) end })
 	Window:GlobalSetting({ Name="Notifications", Default=true,  Callback=function(v) Window:SetNotificationsState(v) end })
 	Window:GlobalSetting({ Name="Show User Info",Default=true,  Callback=function(v) Window:SetUserInfoState(v) end })
 
 	local TG = Window:TabGroup()
 
-	-- ── HOME ────────────────────────────────────────────────────────
-	local homeTab = TG:Tab({ Name="Home", IconText="⌂" })
+	local homeTab = TG:Tab({ Name="Home",     Image="rbxassetid://15927926340" })
 
-	-- Info card (Left)
 	local infoSec = homeTab:Section({ Side="Left", Name="Information" })
-	infoSec:Label({ Text="Executor",      Value="—" })
-	infoSec:Label({ Text="License",       Value="—" })
+	local execLabel   = infoSec:Label({ Text="Executor",      Value="Detecting..." })
+	local licenseLabel= infoSec:Label({ Text="License",       Value="—" })
 	infoSec:Label({
 		Text="Script Status", Value="Online",
 		ValueStyle="badge", BadgeColor=Color3.fromRGB(50,195,75),
 	})
 
-	-- Game info card (Right)
+	task.spawn(function()
+		local name = "Unknown"
+		if identifyexecutor then
+			local ok, n = pcall(identifyexecutor)
+			if ok and n then name = tostring(n) end
+		elseif getexecutorname then
+			local ok, n = pcall(getexecutorname)
+			if ok and n then name = tostring(n) end
+		elseif KRNL_LOADED then
+			name = "KRNL"
+		elseif syn then
+			name = "Synapse X"
+		elseif fluxus then
+			name = "Fluxus"
+		elseif isStudio then
+			name = "Studio"
+		end
+		execLabel:UpdateValue(name)
+	end)
+
 	local gameSec = homeTab:Section({ Side="Right", Name="Game Information" })
-	gameSec:Label({ Text="Playtime",   Value="00:00:00", ValueColor=Color3.fromRGB(80,195,205) })
+	local playtimeLbl = gameSec:Label({ Text="Playtime", Value="00:00:00", ValueColor=Color3.fromRGB(80,195,205) })
 	gameSec:Label({ Text="Walkspeed",  Value="—" })
 	gameSec:Label({ Text="Jump Power", Value="—" })
 
-	-- Warnings / Credits (Full width)
+	local _ptStart = os.time()
+	local _ptLast  = 0
+	RunService.Heartbeat:Connect(function()
+		local now = os.time()
+		if now == _ptLast then return end
+		_ptLast = now
+		local elapsed = now - _ptStart
+		local h = math.floor(elapsed / 3600)
+		local m = math.floor((elapsed % 3600) / 60)
+		local s = elapsed % 60
+		playtimeLbl:UpdateValue(string.format("%02d:%02d:%02d", h, m, s))
+	end)
+
 	local warnSec = homeTab:Section({ Side="Full", Name="" })
 	local stg = warnSec:SubTabGroup()
 
@@ -2852,11 +2795,14 @@ function UILib:Demo()
 	})
 
 	local creditsTab = stg:SubTab({ Name="CREDITS" })
-	creditsTab:Label({ Text="Developer",    Value="—" })
+	creditsTab:Label({ Text="Developer",    Value="clixcks" })
 	creditsTab:Label({ Text="Contributors", Value="—" })
 
-	-- ── FEATURES ────────────────────────────────────────────────────
-	local featTab = TG:Tab({ Name="Features", IconText="✦" })
+	local featTab = TG:Tab({
+		Name       = "Features",
+		Image      = "rbxassetid://11435662308",
+		QuickImage = "rbxassetid://2795572803",
+	})
 
 	local feat1 = featTab:Section({ Side="Left",  Name="Title" })
 	feat1:Toggle({ Name="Toggle",   Default=false, Callback=function(v)
@@ -2886,13 +2832,31 @@ function UILib:Demo()
 	}, "F_Color2")
 	feat2:Button({ Name="Button", Callback=function() print("Button 2") end })
 
-	-- ── OTHER ────────────────────────────────────────────────────────
-	local otherTab = TG:Tab({ Name="Other", IconText="···" })
-	local otherSec = otherTab:Section({ Side="Left", Name="Other" })
-	otherSec:Label({ Text="Nothing here yet." })
+	local musicTab = TG:Tab({
+		Name       = "Music",
+		Image      = "rbxassetid://7059338404",
+		QuickImage = "rbxassetid://7059338404",
+	})
+	local musicSec = musicTab:Section({ Side="Left", Name="Audio Player" })
+	musicSec:Input({
+		Name="Sound ID", Placeholder="Enter Sound ID...",
+		AcceptedCharacters="Numeric",
+	}, "Music_SoundID")
+	musicSec:Slider({ Name="Volume",   Minimum=0, Maximum=1,   Default=0.5,
+		DisplayMethod="Percent", Callback=function(v) print("Volume:",v) end
+	}, "Music_Volume")
+	musicSec:Slider({ Name="Position", Minimum=0, Maximum=100, Default=0,
+		DisplayMethod="Round",   Callback=function(v) print("Position:",v) end
+	}, "Music_Position")
+	local musicBtns = musicTab:Section({ Side="Right", Name="Controls" })
+	musicBtns:Button({ Name="Play",  Callback=function() print("Play")  end })
+	musicBtns:Button({ Name="Pause", Callback=function() print("Pause") end })
+	musicBtns:Button({ Name="Stop",  Callback=function() print("Stop")  end })
 
-	-- ── SETTINGS ────────────────────────────────────────────────────
-	local settingsTab = TG:Tab({ Name="Settings", IconText="⚙" })
+	local settingsTab = TG:Tab({
+		Name  = "Settings",
+		Image = "rbxassetid://9405931578",
+	})
 	settingsTab:InsertConfigSection("Left")
 
 	UILib:SetFolder("UILib")

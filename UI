@@ -487,38 +487,41 @@ function UILib:Window(Settings)
 	local _hideUsernameToggled = false
 	local _customUsername = LocalPlayer.DisplayName
 
-	local function OpenGlobalSettings()
-		if globalSettingsOpen then
-			if globalSettingsModal then
-				local s=Instance.new("UIScale"); s.Parent=globalSettingsModal
-				Tween(globalSettingsModal,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{GroupTransparency=1}):Play()
-				Tween(s,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{Scale=0.95}):Play()
-				task.delay(0.15,function() globalSettingsModal:Destroy(); globalSettingsModal=nil; globalSettingsOpen=false end)
-			end
-			return
+	local function CloseGlobalSettings()
+		if globalSettingsModal then
+			Tween(globalSettingsModal,TweenInfo.new(0.15,Enum.EasingStyle.Sine),
+				{BackgroundTransparency=1}):Play()
+			task.delay(0.15,function()
+				if globalSettingsModal then globalSettingsModal:Destroy() end
+				globalSettingsModal=nil; globalSettingsOpen=false
+			end)
 		end
+	end
+
+	local function OpenGlobalSettings()
+		if globalSettingsOpen then CloseGlobalSettings() return end
 		globalSettingsOpen=true
 
-		local canvas=New("CanvasGroup",{
+		local overlay=New("Frame",{
 			BackgroundColor3=Color3.fromRGB(0,0,0),
-			BackgroundTransparency=0.55,
+			BackgroundTransparency=1,
 			BorderSizePixel=0,
-			GroupTransparency=1,
 			Size=UDim2.fromScale(1,1),
 			ZIndex=18,
 			Parent=win,
 		})
-		globalSettingsModal=canvas
+		globalSettingsModal=overlay
 
 		local panel=New("Frame",{
 			AnchorPoint=Vector2.new(1,1),
 			AutomaticSize=Enum.AutomaticSize.Y,
 			BackgroundColor3=T.Card,
+			BackgroundTransparency=0,
 			BorderSizePixel=0,
 			Position=UDim2.new(1,-8,1,-BOT_H-8),
 			Size=UDim2.fromOffset(270,0),
 			ZIndex=19,
-			Parent=canvas,
+			Parent=overlay,
 		})
 		MakeCorner(panel,T.R)
 		MakeStroke(panel,T.BorderLight,0.72)
@@ -526,7 +529,7 @@ function UILib:Window(Settings)
 		MakeList(panel,12)
 
 		local pScale=New("UIScale",{Scale=0.92,Parent=panel})
-		Tween(canvas,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{GroupTransparency=0}):Play()
+		Tween(overlay,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{BackgroundTransparency=0.55}):Play()
 		Tween(pScale,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{Scale=1}):Play()
 
 		New("TextLabel",{
@@ -616,18 +619,14 @@ function UILib:Window(Settings)
 			FontFace=FF(),AutoButtonColor=false,Parent=closeRow,
 		})
 		MakeCorner(doneBtn,T.Rsm)
-		doneBtn.MouseButton1Click:Connect(function()
-			Tween(canvas,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{GroupTransparency=1}):Play()
-			Tween(pScale,TweenInfo.new(0.15,Enum.EasingStyle.Sine),{Scale=0.92}):Play()
-			task.delay(0.15,function() canvas:Destroy(); globalSettingsModal=nil; globalSettingsOpen=false end)
-		end)
+		doneBtn.MouseButton1Click:Connect(CloseGlobalSettings)
 
-		canvas.InputBegan:Connect(function(inp)
+		overlay.InputBegan:Connect(function(inp)
 			if inp.UserInputType==Enum.UserInputType.MouseButton1 then
 				local mp=UserInputService:GetMouseLocation()
 				local pa=panel.AbsolutePosition; local ps=panel.AbsoluteSize
 				if mp.X<pa.X or mp.X>pa.X+ps.X or mp.Y<pa.Y or mp.Y>pa.Y+ps.Y then
-					doneBtn.MouseButton1Click:Fire()
+					CloseGlobalSettings()
 				end
 			end
 		end)
@@ -1000,6 +999,9 @@ function UILib:Window(Settings)
 				})
 				MakePad(elemWrap, 8, 14, 10, 14)
 				MakeList(elemWrap, 0)
+
+				SF._elemWrap = elemWrap
+				SF._card     = card
 
 				local elemOrder = 0
 
@@ -3358,37 +3360,17 @@ function UILib:Demo()
 			end
 		end
 
-		local lbHolder = New("Frame",{
-			BackgroundTransparency=1, BorderSizePixel=0,
-			Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
-			LayoutOrder=10, Parent=lbSec.Settings and lbSec or nil,
-		})
-
-		local lbScrollFrame = New("ScrollingFrame",{
-			BackgroundTransparency=1, BorderSizePixel=0,
-			Size=UDim2.new(1,0,0,340),
-			CanvasSize=UDim2.new(0,0,0,0),
-			AutomaticCanvasSize=Enum.AutomaticSize.Y,
-			ScrollBarThickness=3,
-			ScrollBarImageColor3=T.Border,
-			LayoutOrder=1,
-		})
-
-		lbSec:Header({ Text="" })
-
 		task.spawn(function()
 			task.wait(0.1)
-
-			local innerSec = lbSec
 			local sf = New("ScrollingFrame",{
 				BackgroundTransparency=1, BorderSizePixel=0,
-				Size=UDim2.new(1,-28,0,340),
+				Size=UDim2.new(1,0,0,340),
 				CanvasSize=UDim2.new(0,0,0,0),
 				AutomaticCanvasSize=Enum.AutomaticSize.Y,
 				ScrollBarThickness=3,
 				ScrollBarImageColor3=T.Border,
 				LayoutOrder=99,
-				Parent=innerSec,
+				Parent=lbSec._elemWrap,
 			})
 			MakeList(sf,6)
 			MakePad(sf,4,4,4,4)
@@ -3619,13 +3601,13 @@ function UILib:Demo()
 			task.wait(0.15)
 			local sf = New("ScrollingFrame",{
 				BackgroundTransparency=1, BorderSizePixel=0,
-				Size=UDim2.new(1,-28,0,380),
+				Size=UDim2.new(1,0,0,380),
 				CanvasSize=UDim2.new(0,0,0,0),
 				AutomaticCanvasSize=Enum.AutomaticSize.Y,
 				ScrollBarThickness=3,
 				ScrollBarImageColor3=T.Border,
 				LayoutOrder=20,
-				Parent=svSec,
+				Parent=svSec._elemWrap,
 			})
 			MakeList(sf,6)
 			MakePad(sf,4,4,8,4)
